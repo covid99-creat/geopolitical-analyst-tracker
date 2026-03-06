@@ -6,14 +6,19 @@ const { URL } = require("url");
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
-const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 180);
+const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 730);
+const MAX_ITEMS_PER_FEED = Number(process.env.MAX_ITEMS_PER_FEED || 500);
+const MAX_STORED_LIVE_PREDICTIONS = Number(process.env.MAX_STORED_LIVE_PREDICTIONS || 5000);
 
 const GEOPOLITICAL_TERMS = [
   "iran", "israel", "gaza", "hamas", "hezbollah",
   "ukraine", "russia", "nato", "china", "taiwan",
-  "sanctions", "un security council", "ceasefire", "oil",
+  "sanctions", "un security council", "ceasefire", "oil", "middle east",
+  "missile", "nuclear", "tehran", "washington", "moscow", "beijing",
+  "jerusalem", "houthi", "red sea",
   "איראן", "ישראל", "עזה", "אוקראינה", "רוסיה", "סין",
-  "טאיוואן", "סנקציות", "הפסקת אש", "נפט", "מזרח תיכון"
+  "טאיוואן", "סנקציות", "הפסקת אש", "נפט", "מזרח תיכון",
+  "טהרן", "חמאס", "חיזבאללה", "טילים", "גרעין", "ים סוף"
 ];
 
 const EVENT_MATCHERS = [
@@ -146,11 +151,22 @@ function isPredictionText(text) {
     /\brisks?\b/i,
     /\bscenario\b/i,
     /\bprobability\b/i,
+    /\bpossible\b/i,
+    /\bpotential\b/i,
+    /\bset to\b/i,
+    /\bpoised to\b/i,
+    /\bcoming months?\b/i,
+    /\bcoming weeks?\b/i,
+    /\bby \d{4}\b/i,
     /צפוי/,
     /הערכה/,
     /תחזית/,
     /סביר/,
-    /עלול/
+    /עלול/,
+    /עשוי/,
+    /ייתכן/,
+    /בחודשים הקרובים/,
+    /בשנה הקרובה/
   ];
 
   return predictionHints.some((rx) => rx.test(text));
@@ -159,6 +175,26 @@ function isPredictionText(text) {
 function isGeopoliticalText(text) {
   const lower = text.toLowerCase();
   return GEOPOLITICAL_TERMS.some((term) => lower.includes(term.toLowerCase()));
+}
+
+function isSoftForecastText(text) {
+  const softHints = [
+    /\btensions?\b/i,
+    /\bescalat/i,
+    /\bde-escalat/i,
+    /\bnegotiat/i,
+    /\btalks?\b/i,
+    /\bwar\b/i,
+    /\bconflict\b/i,
+    /\bpeace\b/i,
+    /\bsettlement\b/i,
+    /הסלמה/,
+    /מו"מ/,
+    /מלחמה/,
+    /הסכם/,
+    /פשרה/
+  ];
+  return isGeopoliticalText(text) && softHints.some((rx) => rx.test(text));
 }
 
 function topicFromText(text) {
@@ -286,9 +322,13 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
   const items = splitFeedEntries(xml);
   const parsed = [];
 
-  for (const item of items.slice(0, 300)) {
+  for (const item of items.slice(0, MAX_ITEMS_PER_FEED)) {
     const title = extractTag(item, "title");
-    const description = extractTag(item, "description") || extractTag(item, "content") || extractTag(item, "summary");
+    const description =
+      extractTag(item, "description") ||
+      extractTag(item, "content:encoded") ||
+      extractTag(item, "content") ||
+      extractTag(item, "summary");
     const creator =
       extractTag(item, "dc:creator") ||
       extractTag(item, "author") ||
@@ -309,8 +349,8 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
       continue;
     }
 
-    // Keep high recall: prediction wording OR a geopolitical topic with forecast-like signal.
-    if (!isPredictionText(text) && !isGeopoliticalText(text)) {
+    // High recall mode: accept explicit forecasts and also broad geopolitical items.
+    if (!isPredictionText(text) && !isSoftForecastText(text) && !isGeopoliticalText(text)) {
       continue;
     }
 
@@ -336,6 +376,7 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
 
 async function refreshLivePredictions() {
   const sources = await readJson("sources.json", []);
+  const previousRows = await readJson("live_predictions.json", []);
   const all = [];
 
   for (const source of sources) {
@@ -354,7 +395,15 @@ async function refreshLivePredictions() {
     }
   }
 
-  const finalRows = Array.from(unique.values());
+  for (const item of previousRows) {
+    if (!unique.has(item.id)) {
+      unique.set(item.id, item);
+    }
+  }
+
+  const finalRows = Array.from(unique.values())
+    .sort((a, b) => (b.publishedAt || b.scrapedAt || "").localeCompare(a.publishedAt || a.scrapedAt || ""))
+    .slice(0, MAX_STORED_LIVE_PREDICTIONS);
   await writeJson("live_predictions.json", finalRows);
   return finalRows;
 }

@@ -1,47 +1,77 @@
 ﻿[
-  {
-    "name": "NYT World",
-    "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-    "defaultAnalyst": "NYT analyst"
-  },
-  {
-    "name": "The Guardian World",
-    "url": "https://www.theguardian.com/world/rss",
-    "defaultAnalyst": "Guardian analyst"
-  },
-  {
-    "name": "BBC World",
-    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
-    "defaultAnalyst": "BBC analyst"
-  },
-  {
-    "name": "Al Jazeera",
-    "url": "https://www.aljazeera.com/xml/rss/all.xml",
-    "defaultAnalyst": "Al Jazeera analyst"
-  },
-  {
-    "name": "Foreign Policy",
-    "url": "https://foreignpolicy.com/feed/",
-    "defaultAnalyst": "Foreign Policy contributor"
-  },
-  {
-    "name": "The Diplomat",
-    "url": "https://thediplomat.com/feed/",
-    "defaultAnalyst": "The Diplomat contributor"
-  },
-  {
-    "name": "Brookings",
-    "url": "https://www.brookings.edu/feed/",
-    "defaultAnalyst": "Brookings fellow"
-  },
-  {
-    "name": "CSIS",
-    "url": "https://www.csis.org/analysis/rss.xml",
-    "defaultAnalyst": "CSIS analyst"
-  },
-  {
-    "name": "War On The Rocks",
-    "url": "https://warontherocks.com/feed/",
-    "defaultAnalyst": "War On The Rocks contributor"
-  }
+    {
+        "name":  "Google News - Iran War",
+        "url":  "https://news.google.com/rss/search?q=Iran+war+forecast+OR+prediction\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "name":  "Google News - Ukraine War Forecast",
+        "url":  "https://news.google.com/rss/search?q=Ukraine+war+forecast+OR+prediction\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "name":  "Google News - Middle East Ceasefire",
+        "url":  "https://news.google.com/rss/search?q=Middle+East+ceasefire+likely+OR+expected\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "name":  "Google News - Geopolitical Outlook",
+        "url":  "https://news.google.com/rss/search?q=geopolitical+outlook+analysis+forecast\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "name":  "Google News - China Taiwan Prediction",
+        "url":  "https://news.google.com/rss/search?q=China+Taiwan+prediction+OR+scenario\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "name":  "The Diplomat",
+        "url":  "https://thediplomat.com/feed/",
+        "defaultAnalyst":  "The Diplomat contributor"
+    },
+    {
+        "name":  "Foreign Policy",
+        "url":  "https://foreignpolicy.com/feed/",
+        "defaultAnalyst":  "Foreign Policy contributor"
+    },
+    {
+        "name":  "War On The Rocks",
+        "url":  "https://warontherocks.com/feed/",
+        "defaultAnalyst":  "War On The Rocks contributor"
+    },
+    {
+        "name":  "Brookings",
+        "url":  "https://www.brookings.edu/feed/",
+        "defaultAnalyst":  "Brookings fellow"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=Iran+analysis+geopolitics\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - Iran Analysis",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=Israel+Iran+analysis+scenario\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - Israel Iran",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=Russia+NATO+scenario+forecast\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - Russia NATO",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=oil+geopolitics+forecast\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - Oil Geopolitics",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=UN+sanctions+expected+analysis\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - UN Sanctions",
+        "defaultAnalyst":  "News analyst"
+    },
+    {
+        "url":  "https://news.google.com/rss/search?q=Middle+East+outlook+analysis\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+        "name":  "Google News - Middle East Outlook",
+        "defaultAnalyst":  "News analyst"
+    }
 ]
