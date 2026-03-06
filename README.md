@@ -1,12 +1,12 @@
 ﻿# Geo-Political Analyst Tracker
 
-אתר שסורק מקורות ברשת (RSS), מזהה תחזיות גיאו-פוליטיות, ובודק/מדורג לפי אירועים בפועל.
+אתר שסורק תחזיות **מטוויטר בלבד** (באמצעות RSS של חשבונות Twitter/X), ובודק/מדורג לפי אירועים בפועל.
 
 ## מה יש בפרויקט
 
 - `server.js` - שרת Node ללא תלות בחבילות חיצוניות.
 - `index.html`, `app.js`, `styles.css` - ממשק משתמש.
-- `data/sources.json` - רשימת מקורות RSS לסריקה.
+- `data/sources.json` - רשימת חשבונות Twitter/X (RSS) לסריקה.
 - `data/predictions.seed.json` - תחזיות בסיס לדוגמה.
 - `data/live_predictions.json` - תחזיות שנסרקו מהרשת.
 - `data/events.json` - אירועים בפועל להשוואה.
@@ -24,7 +24,7 @@ npm start
 
 - `http://localhost:3000`
 
-4. לחץ על "רענון מהרשת" כדי למשוך תחזיות חדשות מהמקורות ב-`data/sources.json`.
+4. לחץ על "רענון מהרשת" כדי למשוך תחזיות חדשות מחשבונות Twitter שב-`data/sources.json`.
 
 ## איך זה עובד
 

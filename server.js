@@ -2,6 +2,10 @@
 const fs = require("fs/promises");
 const path = require("path");
 const { URL } = require("url");
+const { execFile } = require("child_process");
+const { promisify } = require("util");
+
+const execFileAsync = promisify(execFile);
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -47,6 +51,43 @@ function sendJson(res, statusCode, payload) {
     "Cache-Control": "no-store"
   });
   res.end(body);
+}
+
+async function fetchFeedText(feedUrl) {
+  const response = await fetch(feedUrl, {
+    headers: {
+      "User-Agent": "Geopolitical-Tracker/1.0",
+      "Accept": "application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`RSS fetch failed: ${response.status}`);
+  }
+
+  const text = await response.text();
+  if (text && text.trim().length > 0) {
+    return text;
+  }
+
+  try {
+    const { stdout } = await execFileAsync("curl", [
+      "-L",
+      feedUrl,
+      "-H",
+      "User-Agent: Mozilla/5.0",
+      "--max-time",
+      "25"
+    ]);
+
+    if (stdout && stdout.trim().length > 0) {
+      return stdout;
+    }
+  } catch {
+    // Ignore curl fallback errors; caller handles empty responses.
+  }
+
+  return "";
 }
 
 function inferProbability(text) {
@@ -104,6 +145,14 @@ function extractTag(xml, tag) {
   const rx = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
   const m = xml.match(rx);
   return m ? decodeEntities(stripTags(m[1])) : "";
+}
+
+function cleanTweetTitle(title) {
+  if (!title) return "";
+  return title
+    .replace(/^.+?\bon X:\s*/i, "")
+    .replace(/^.+?\bon Twitter:\s*/i, "")
+    .trim();
 }
 
 function extractAtomLink(xml) {
@@ -308,17 +357,10 @@ function scoreAnalysts(predictions, events) {
 }
 
 async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
-  const response = await fetch(source.url, {
-    headers: {
-      "User-Agent": "Geopolitical-Tracker/1.0"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`RSS fetch failed (${source.name}): ${response.status}`);
+  const xml = await fetchFeedText(source.url);
+  if (!xml || xml.trim().length === 0) {
+    throw new Error(`RSS fetch failed (${source.name}): empty response body`);
   }
-
-  const xml = await response.text();
   const items = splitFeedEntries(xml);
   const parsed = [];
 
@@ -344,13 +386,14 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
       continue;
     }
 
-    const text = `${title}. ${description}`.trim();
+    const cleanedTitle = cleanTweetTitle(title);
+    const text = `${cleanedTitle || title}. ${description}`.trim();
     if (!text) {
       continue;
     }
 
-    // High recall mode: accept explicit forecasts and also broad geopolitical items.
-    if (!isPredictionText(text) && !isSoftForecastText(text) && !isGeopoliticalText(text)) {
+    // Twitter-only mode: keep broad recall and filter obvious noise.
+    if (text.startsWith("RT @") || text.length < 25) {
       continue;
     }
 
@@ -358,7 +401,7 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
       id: `live-${Buffer.from(`${source.name}-${link || title}-${pubDate}`).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 28)}`,
       analyst: creator || source.defaultAnalyst,
       topic: topicFromText(text),
-      claim: title || description.slice(0, 220),
+      claim: cleanedTitle || title || description.slice(0, 220),
       deadline: inferDeadline(text, pubDate),
       probability: inferProbability(text),
       eventKey: eventKeyFromText(text),
@@ -376,7 +419,6 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
 
 async function refreshLivePredictions() {
   const sources = await readJson("sources.json", []);
-  const previousRows = await readJson("live_predictions.json", []);
   const all = [];
 
   for (const source of sources) {
@@ -395,12 +437,6 @@ async function refreshLivePredictions() {
     }
   }
 
-  for (const item of previousRows) {
-    if (!unique.has(item.id)) {
-      unique.set(item.id, item);
-    }
-  }
-
   const finalRows = Array.from(unique.values())
     .sort((a, b) => (b.publishedAt || b.scrapedAt || "").localeCompare(a.publishedAt || a.scrapedAt || ""))
     .slice(0, MAX_STORED_LIVE_PREDICTIONS);
@@ -409,13 +445,12 @@ async function refreshLivePredictions() {
 }
 
 async function getDataPayload() {
-  const [seedPredictions, livePredictions, events] = await Promise.all([
-    readJson("predictions.seed.json", []),
+  const [livePredictions, events] = await Promise.all([
     readJson("live_predictions.json", []),
     readJson("events.json", {})
   ]);
 
-  const predictions = [...seedPredictions, ...livePredictions]
+  const predictions = [...livePredictions]
     .sort((a, b) => (b.scrapedAt || b.deadline || "").localeCompare(a.scrapedAt || a.deadline || ""));
 
   return {
