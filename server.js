@@ -6,6 +6,7 @@ const { URL } = require("url");
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
+const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 60);
 
 const EVENT_MATCHERS = [
   {
@@ -96,6 +97,23 @@ function splitItems(xml) {
   return xml.split(/<item[\\s>]/i).slice(1).map((chunk) => `<item ${chunk}`);
 }
 
+function isWithinLookback(pubDateText, lookbackDays) {
+  if (!pubDateText) {
+    return true;
+  }
+
+  const parsed = new Date(pubDateText);
+  if (Number.isNaN(parsed.getTime())) {
+    return true;
+  }
+
+  const now = new Date();
+  const windowStart = new Date(now);
+  windowStart.setDate(windowStart.getDate() - lookbackDays);
+
+  return parsed >= windowStart && parsed <= now;
+}
+
 function isPredictionText(text) {
   const predictionHints = [
     /\bwill\b/i,
@@ -133,7 +151,7 @@ function topicFromText(text) {
 async function readJson(fileName, fallback) {
   try {
     const raw = await fs.readFile(path.join(DATA_DIR, fileName), "utf8");
-    return JSON.parse(raw);
+    return JSON.parse(raw.replace(/^\uFEFF/, ""));
   } catch {
     return fallback;
   }
@@ -221,7 +239,7 @@ function scoreAnalysts(predictions, events) {
     .sort((a, b) => b.finalScore - a.finalScore);
 }
 
-async function fetchRss(source) {
+async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
   const response = await fetch(source.url, {
     headers: {
       "User-Agent": "Geopolitical-Tracker/1.0"
@@ -236,12 +254,16 @@ async function fetchRss(source) {
   const items = splitItems(xml);
   const parsed = [];
 
-  for (const item of items.slice(0, 30)) {
+  for (const item of items.slice(0, 120)) {
     const title = extractTag(item, "title");
     const description = extractTag(item, "description");
     const creator = extractTag(item, "dc:creator") || extractTag(item, "author");
     const link = extractTag(item, "link");
     const pubDate = extractTag(item, "pubDate");
+
+    if (!isWithinLookback(pubDate, lookbackDays)) {
+      continue;
+    }
 
     const text = `${title}. ${description}`.trim();
     if (!text || !isPredictionText(text)) {
@@ -257,7 +279,8 @@ async function fetchRss(source) {
       probability: inferProbability(text),
       eventKey: eventKeyFromText(text),
       source: link || source.url,
-      scrapedAt: new Date().toISOString()
+      scrapedAt: new Date().toISOString(),
+      publishedAt: pubDate || null
     };
 
     parsed.push(prediction);
@@ -272,7 +295,7 @@ async function refreshLivePredictions() {
 
   for (const source of sources) {
     try {
-      const predictions = await fetchRss(source);
+      const predictions = await fetchRss(source, LOOKBACK_DAYS);
       all.push(...predictions);
     } catch {
       // Keep refresh resilient: one failed source should not break all sources.
@@ -308,7 +331,8 @@ async function getDataPayload() {
     meta: {
       updatedAt: new Date().toISOString(),
       livePredictions: livePredictions.length,
-      totalPredictions: predictions.length
+      totalPredictions: predictions.length,
+      lookbackDays: LOOKBACK_DAYS
     }
   };
 }
@@ -375,5 +399,13 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
+  refreshLivePredictions()
+    .then((rows) => {
+      console.log(`Initial refresh complete: ${rows.length} predictions from last ${LOOKBACK_DAYS} days.`);
+    })
+    .catch(() => {
+      console.log("Initial refresh skipped due network/source issue.");
+    });
 });
 

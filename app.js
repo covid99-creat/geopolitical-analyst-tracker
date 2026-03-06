@@ -31,7 +31,8 @@ function renderPredictions(predictions) {
   for (const p of predictions.slice(0, 80)) {
     const li = document.createElement("li");
     const eventPart = p.eventKey ? `eventKey: ${p.eventKey}` : "ללא התאמה לאירוע";
-    li.innerHTML = `<strong>${p.analyst}</strong>: ${p.claim} (p=${p.probability}, דדליין: ${p.deadline}, ${eventPart})`;
+    const publishedPart = p.publishedAt ? `, פורסם: ${p.publishedAt}` : "";
+    li.innerHTML = `<strong>${p.analyst}</strong>: ${p.claim} (p=${p.probability}, דדליין: ${p.deadline}${publishedPart}, ${eventPart})`;
     list.appendChild(li);
   }
 }
@@ -60,7 +61,7 @@ async function loadData() {
   renderScores(payload.scores);
   renderPredictions(payload.predictions);
   renderEvents(payload.events);
-  setStatus(`עודכן: ${new Date(payload.meta.updatedAt).toLocaleString()}. סה"כ תחזיות: ${payload.meta.totalPredictions}`);
+  setStatus(`עודכן: ${new Date(payload.meta.updatedAt).toLocaleString()}. חלון סריקה: ${payload.meta.lookbackDays} ימים. סה"כ תחזיות: ${payload.meta.totalPredictions}`);
 }
 
 async function refreshFromWeb() {
@@ -80,3 +81,5 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
 loadData().catch((error) => {
   setStatus(`שגיאה בטעינה: ${error.message}`);
 });
+
+

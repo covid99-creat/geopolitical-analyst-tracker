@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "live-TllUIFdvcmxkLWh0dHBzOi",
+    "analyst": "Christina Goldbaum",
+    "topic": "איראן",
+    "claim": "Lebanon at ‘Tipping Point’ as It Seeks to Disarm Hezbollah",
+    "deadline": "2026-09-06",
+    "probability": 0.55,
+    "eventKey": null,
+    "source": "https://www.nytimes.com/2026/03/06/world/middleeast/lebanon-hezbollah-iran-disarm.html",
+    "scrapedAt": "2026-03-06T11:32:17.537Z",
+    "publishedAt": "Fri, 06 Mar 2026 08:59:40 +0000"
+  },
+  {
+    "id": "live-VGhlIEd1YXJkaWFuIFdvcm",
+    "analyst": "Agence France-Presse",
+    "topic": "גיאו-פוליטיקה",
+    "claim": "US and Venezuela move to restore diplomatic ties two months after Maduro’s capture",
+    "deadline": "2026-12-31",
+    "probability": 0.55,
+    "eventKey": null,
+    "source": "https://www.theguardian.com/us-news/2026/mar/06/us-venezuela-diplomatic-ties-relations-delcy-rodriguez",
+    "scrapedAt": "2026-03-06T11:32:17.652Z",
+    "publishedAt": "Fri, 06 Mar 2026 06:59:29 GMT"
+  }
+]

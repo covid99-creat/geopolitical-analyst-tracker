@@ -1,8 +1,18 @@
 ﻿[
   {
-    "name": "Foreign Policy",
-    "url": "https://foreignpolicy.com/feed/",
-    "defaultAnalyst": "Foreign Policy contributor"
+    "name": "Reuters World",
+    "url": "https://feeds.reuters.com/Reuters/worldNews",
+    "defaultAnalyst": "Reuters analyst"
+  },
+  {
+    "name": "NYT World",
+    "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    "defaultAnalyst": "NYT analyst"
+  },
+  {
+    "name": "The Guardian World",
+    "url": "https://www.theguardian.com/world/rss",
+    "defaultAnalyst": "Guardian analyst"
   },
   {
     "name": "The Diplomat",
