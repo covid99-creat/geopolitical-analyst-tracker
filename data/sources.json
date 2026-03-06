@@ -1,10 +1,5 @@
 ﻿[
   {
-    "name": "Reuters World",
-    "url": "https://feeds.reuters.com/Reuters/worldNews",
-    "defaultAnalyst": "Reuters analyst"
-  },
-  {
     "name": "NYT World",
     "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
     "defaultAnalyst": "NYT analyst"
@@ -15,6 +10,21 @@
     "defaultAnalyst": "Guardian analyst"
   },
   {
+    "name": "BBC World",
+    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "defaultAnalyst": "BBC analyst"
+  },
+  {
+    "name": "Al Jazeera",
+    "url": "https://www.aljazeera.com/xml/rss/all.xml",
+    "defaultAnalyst": "Al Jazeera analyst"
+  },
+  {
+    "name": "Foreign Policy",
+    "url": "https://foreignpolicy.com/feed/",
+    "defaultAnalyst": "Foreign Policy contributor"
+  },
+  {
     "name": "The Diplomat",
     "url": "https://thediplomat.com/feed/",
     "defaultAnalyst": "The Diplomat contributor"
@@ -23,5 +33,15 @@
     "name": "Brookings",
     "url": "https://www.brookings.edu/feed/",
     "defaultAnalyst": "Brookings fellow"
+  },
+  {
+    "name": "CSIS",
+    "url": "https://www.csis.org/analysis/rss.xml",
+    "defaultAnalyst": "CSIS analyst"
+  },
+  {
+    "name": "War On The Rocks",
+    "url": "https://warontherocks.com/feed/",
+    "defaultAnalyst": "War On The Rocks contributor"
   }
 ]

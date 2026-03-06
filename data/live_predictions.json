@@ -1,26 +1,67 @@
 [
   {
-    "id": "live-TllUIFdvcmxkLWh0dHBzOi",
-    "analyst": "Christina Goldbaum",
+    "id": "live-TllUIFdvcmxkLWh0dHBzOi8vd3d3",
+    "analyst": "The New York Times",
     "topic": "איראן",
-    "claim": "Lebanon at ‘Tipping Point’ as It Seeks to Disarm Hezbollah",
+    "claim": "Live Updates: Israel Pummels Beirut, Intensifying Strikes on Hezbollah",
+    "deadline": "2024-12-31",
+    "probability": 0.55,
+    "eventKey": null,
+    "source": "https://www.nytimes.com/live/2026/03/06/world/iran-war-trump-israel-lebanon",
+    "predictionLink": "https://www.nytimes.com/live/2026/03/06/world/iran-war-trump-israel-lebanon",
+    "scrapedAt": "2026-03-06T11:56:24.565Z",
+    "publishedAt": "Fri, 06 Mar 2026 11:54:41 +0000"
+  },
+  {
+    "id": "live-VGhlIEd1YXJkaWFuIFdvcmxkLWh0",
+    "analyst": "Kat Lay, Global health corespondent",
+    "topic": "גיאו-פוליטיקה",
+    "claim": "Weight-loss jab could be made for $3 a month, study finds",
+    "deadline": "2024-12-31",
+    "probability": 0.55,
+    "eventKey": null,
+    "source": "https://www.theguardian.com/global-development/2026/mar/06/generic-drugs-weight-loss-semaglutide-ozempic-wegovy-diabetes-obesity-study",
+    "predictionLink": "https://www.theguardian.com/global-development/2026/mar/06/generic-drugs-weight-loss-semaglutide-ozempic-wegovy-diabetes-obesity-study",
+    "scrapedAt": "2026-03-06T11:56:24.667Z",
+    "publishedAt": "Fri, 06 Mar 2026 09:00:16 GMT"
+  },
+  {
+    "id": "live-Rm9yZWlnbiBQb2xpY3ktaHR0cHM6",
+    "analyst": "Foreign Policy contributor",
+    "topic": "איראן",
+    "claim": "How the Gulf Countries Are Responding to Iran’s Attacks",
+    "deadline": "2026-09-05",
+    "probability": 0.55,
+    "eventKey": null,
+    "source": "https://foreignpolicy.com/2026/03/05/al-oraibi-maksad-gulf-response-iran-attacks/",
+    "predictionLink": "https://foreignpolicy.com/2026/03/05/al-oraibi-maksad-gulf-response-iran-attacks/",
+    "scrapedAt": "2026-03-06T11:56:24.770Z",
+    "publishedAt": "Thu, 05 Mar 2026 22:18:52 +0000"
+  },
+  {
+    "id": "live-VGhlIERpcGxvbWF0LWh0dHBzOi8v",
+    "analyst": "The Diplomat contributor",
+    "topic": "גיאו-פוליטיקה",
+    "claim": "Philippines Arrests 3 Defense Personnel Over China Spy Claims",
     "deadline": "2026-09-06",
     "probability": 0.55,
     "eventKey": null,
-    "source": "https://www.nytimes.com/2026/03/06/world/middleeast/lebanon-hezbollah-iran-disarm.html",
-    "scrapedAt": "2026-03-06T11:49:45.711Z",
-    "publishedAt": "Fri, 06 Mar 2026 08:59:40 +0000"
+    "source": "https://thediplomat.com/2026/03/philippines-arrests-3-defense-personnel-over-china-spy-claims/",
+    "predictionLink": "https://thediplomat.com/2026/03/philippines-arrests-3-defense-personnel-over-china-spy-claims/",
+    "scrapedAt": "2026-03-06T11:56:24.795Z",
+    "publishedAt": null
   },
   {
-    "id": "live-VGhlIEd1YXJkaWFuIFdvcm",
-    "analyst": "Agence France-Presse",
-    "topic": "גיאו-פוליטיקה",
-    "claim": "US and Venezuela move to restore diplomatic ties two months after Maduro’s capture",
-    "deadline": "2026-12-31",
+    "id": "live-V2FyIE9uIFRoZSBSb2Nrcy1odHRw",
+    "analyst": "War On The Rocks contributor",
+    "topic": "איראן",
+    "claim": "Why Washington’s Kurdish Gambit Could Backfire in Iran",
+    "deadline": "2026-09-06",
     "probability": 0.55,
     "eventKey": null,
-    "source": "https://www.theguardian.com/us-news/2026/mar/06/us-venezuela-diplomatic-ties-relations-delcy-rodriguez",
-    "scrapedAt": "2026-03-06T11:49:46.122Z",
-    "publishedAt": "Fri, 06 Mar 2026 06:59:29 GMT"
+    "source": "https://warontherocks.com/2026/03/why-washingtons-kurdish-gambit-could-backfire-in-iran/",
+    "predictionLink": "https://warontherocks.com/2026/03/why-washingtons-kurdish-gambit-could-backfire-in-iran/",
+    "scrapedAt": "2026-03-06T11:56:25.839Z",
+    "publishedAt": "Fri, 06 Mar 2026 08:30:24 +0000"
   }
 ]

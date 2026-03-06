@@ -6,7 +6,15 @@ const { URL } = require("url");
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
-const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 60);
+const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 180);
+
+const GEOPOLITICAL_TERMS = [
+  "iran", "israel", "gaza", "hamas", "hezbollah",
+  "ukraine", "russia", "nato", "china", "taiwan",
+  "sanctions", "un security council", "ceasefire", "oil",
+  "איראן", "ישראל", "עזה", "אוקראינה", "רוסיה", "סין",
+  "טאיוואן", "סנקציות", "הפסקת אש", "נפט", "מזרח תיכון"
+];
 
 const EVENT_MATCHERS = [
   {
@@ -93,8 +101,18 @@ function extractTag(xml, tag) {
   return m ? decodeEntities(stripTags(m[1])) : "";
 }
 
-function splitItems(xml) {
-  return xml.split(/<item[\\s>]/i).slice(1).map((chunk) => `<item ${chunk}`);
+function extractAtomLink(xml) {
+  const m = xml.match(/<link[^>]*href=["']([^"']+)["'][^>]*>/i);
+  return m ? decodeEntities(m[1].trim()) : "";
+}
+
+function splitFeedEntries(xml) {
+  const rssItems = xml.split(/<item[\\s>]/i).slice(1).map((chunk) => `<item ${chunk}`);
+  if (rssItems.length > 0) {
+    return rssItems;
+  }
+
+  return xml.split(/<entry[\\s>]/i).slice(1).map((chunk) => `<entry ${chunk}`);
 }
 
 function isWithinLookback(pubDateText, lookbackDays) {
@@ -121,12 +139,26 @@ function isPredictionText(text) {
     /\bpredict/i,
     /\blikely\b/i,
     /\bexpected\b/i,
+    /\bcould\b/i,
+    /\bmay\b/i,
+    /\boutlook\b/i,
+    /\bwarns?\b/i,
+    /\brisks?\b/i,
+    /\bscenario\b/i,
+    /\bprobability\b/i,
     /צפוי/,
     /הערכה/,
-    /תחזית/
+    /תחזית/,
+    /סביר/,
+    /עלול/
   ];
 
   return predictionHints.some((rx) => rx.test(text));
+}
+
+function isGeopoliticalText(text) {
+  const lower = text.toLowerCase();
+  return GEOPOLITICAL_TERMS.some((term) => lower.includes(term.toLowerCase()));
 }
 
 function topicFromText(text) {
@@ -251,27 +283,39 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
   }
 
   const xml = await response.text();
-  const items = splitItems(xml);
+  const items = splitFeedEntries(xml);
   const parsed = [];
 
-  for (const item of items.slice(0, 120)) {
+  for (const item of items.slice(0, 300)) {
     const title = extractTag(item, "title");
-    const description = extractTag(item, "description");
-    const creator = extractTag(item, "dc:creator") || extractTag(item, "author");
-    const link = extractTag(item, "link");
-    const pubDate = extractTag(item, "pubDate");
+    const description = extractTag(item, "description") || extractTag(item, "content") || extractTag(item, "summary");
+    const creator =
+      extractTag(item, "dc:creator") ||
+      extractTag(item, "author") ||
+      extractTag(item, "name");
+    const link = extractTag(item, "link") || extractAtomLink(item) || extractTag(item, "id");
+    const pubDate =
+      extractTag(item, "pubDate") ||
+      extractTag(item, "published") ||
+      extractTag(item, "updated") ||
+      extractTag(item, "dc:date");
 
     if (!isWithinLookback(pubDate, lookbackDays)) {
       continue;
     }
 
     const text = `${title}. ${description}`.trim();
-    if (!text || !isPredictionText(text)) {
+    if (!text) {
+      continue;
+    }
+
+    // Keep high recall: prediction wording OR a geopolitical topic with forecast-like signal.
+    if (!isPredictionText(text) && !isGeopoliticalText(text)) {
       continue;
     }
 
     const prediction = {
-      id: `live-${Buffer.from(`${source.name}-${link}`).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 22)}`,
+      id: `live-${Buffer.from(`${source.name}-${link || title}-${pubDate}`).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 28)}`,
       analyst: creator || source.defaultAnalyst,
       topic: topicFromText(text),
       claim: title || description.slice(0, 220),
@@ -279,6 +323,7 @@ async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
       probability: inferProbability(text),
       eventKey: eventKeyFromText(text),
       source: link || source.url,
+      predictionLink: link || source.url,
       scrapedAt: new Date().toISOString(),
       publishedAt: pubDate || null
     };
