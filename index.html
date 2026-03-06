@@ -11,9 +11,7 @@
     <header class="header">
       <div>
         <h1>מדד דיוק לפרשנים גיאו-פוליטיים</h1>
-        <p>
-          המערכת סורקת מקורות RSS, מזהה תחזיות, משווה מול אירועים בפועל ומדרגת פרשנים.
-        </p>
+        <p>טבלת תחזיות מלאה + דשבורד פרשנים + מעקב לפי נושא/פרשן.</p>
       </div>
       <div class="actions">
         <button id="refreshBtn">רענון מהרשת</button>
@@ -21,8 +19,43 @@
       </div>
     </header>
 
+    <section class="card controls-grid">
+      <div>
+        <h2>סינון</h2>
+        <label for="analystFilter">פרשן</label>
+        <select id="analystFilter">
+          <option value="">הכול</option>
+        </select>
+
+        <label for="topicFilter">נושא</label>
+        <select id="topicFilter">
+          <option value="">הכול</option>
+        </select>
+
+        <button id="clearFiltersBtn" class="secondary">איפוס פילטרים</button>
+      </div>
+
+      <div>
+        <h2>מעקב חדש</h2>
+        <form id="watchAnalystForm" class="inline-form">
+          <input id="watchAnalystInput" placeholder="הוסף פרשן למעקב" required>
+          <button type="submit">עקוב</button>
+        </form>
+
+        <form id="watchTopicForm" class="inline-form">
+          <input id="watchTopicInput" placeholder="הוסף נושא למעקב (למשל: סוף המלחמה באיראן)" required>
+          <button type="submit">עקוב</button>
+        </form>
+
+        <div class="watchlist-box">
+          <strong>מעקב פעיל:</strong>
+          <div id="watchlistView"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="card">
-      <h2>תוצאות</h2>
+      <h2>דשבורד לפי פרשן (לחיץ)</h2>
       <table id="analystsTable">
         <thead>
           <tr>
@@ -38,16 +71,44 @@
       </table>
     </section>
 
-    <section class="grid">
-      <article class="card">
-        <h2>תחזיות</h2>
-        <ul id="predictionsList" class="list"></ul>
-      </article>
+    <section class="card">
+      <h2>הוספת תחזית ידנית עם קישור</h2>
+      <form id="manualPredictionForm" class="manual-grid">
+        <input id="manualAnalyst" placeholder="נותן התחזית" required>
+        <input id="manualTopic" placeholder="נושא" required>
+        <input id="manualClaim" placeholder="טקסט התחזית" required>
+        <input id="manualPredictionLink" placeholder="קישור לתחזית (https://...)" required>
+        <input id="manualDeadline" type="date" placeholder="דדליין">
+        <input id="manualProbability" type="number" min="0" max="1" step="0.01" placeholder="הסתברות (0-1)">
+        <input id="manualOutcome" placeholder="מה קרה בפועל (אופציונלי)">
+        <input id="manualOutcomeLink" placeholder="קישור לאירוע בפועל (אופציונלי)">
+        <select id="manualActualOccurred">
+          <option value="">האם התממש? לא ידוע</option>
+          <option value="true">כן</option>
+          <option value="false">לא</option>
+        </select>
+        <button type="submit">הוסף תחזית</button>
+      </form>
+    </section>
 
-      <article class="card">
-        <h2>אירועים בפועל</h2>
-        <ul id="eventsList" class="list"></ul>
-      </article>
+    <section class="card">
+      <h2>כל התחזיות</h2>
+      <table id="predictionsTable">
+        <thead>
+          <tr>
+            <th>נותן התחזית</th>
+            <th>נושא</th>
+            <th>תחזית</th>
+            <th>קישור לתחזית</th>
+            <th>מה התרחש בפועל</th>
+            <th>קישור לאירוע בפועל</th>
+            <th>דדליין</th>
+            <th>הסתברות</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <small id="predictionsCount"></small>
     </section>
   </main>
 
