@@ -1,0 +1,56 @@
+﻿<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מדד הפרשנים הגיאו-פוליטיים</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>מדד דיוק לפרשנים גיאו-פוליטיים</h1>
+        <p>
+          המערכת סורקת מקורות RSS, מזהה תחזיות, משווה מול אירועים בפועל ומדרגת פרשנים.
+        </p>
+      </div>
+      <div class="actions">
+        <button id="refreshBtn">רענון מהרשת</button>
+        <small id="statusText">טוען נתונים...</small>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>תוצאות</h2>
+      <table id="analystsTable">
+        <thead>
+          <tr>
+            <th>פרשן</th>
+            <th>סה"כ תחזיות</th>
+            <th>תחזיות מדורגות</th>
+            <th>דיוק בינארי</th>
+            <th>Brier (נמוך טוב)</th>
+            <th>ציון סופי</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>תחזיות</h2>
+        <ul id="predictionsList" class="list"></ul>
+      </article>
+
+      <article class="card">
+        <h2>אירועים בפועל</h2>
+        <ul id="eventsList" class="list"></ul>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

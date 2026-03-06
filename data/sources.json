@@ -1,0 +1,17 @@
+﻿[
+  {
+    "name": "Foreign Policy",
+    "url": "https://foreignpolicy.com/feed/",
+    "defaultAnalyst": "Foreign Policy contributor"
+  },
+  {
+    "name": "The Diplomat",
+    "url": "https://thediplomat.com/feed/",
+    "defaultAnalyst": "The Diplomat contributor"
+  },
+  {
+    "name": "Brookings",
+    "url": "https://www.brookings.edu/feed/",
+    "defaultAnalyst": "Brookings fellow"
+  }
+]

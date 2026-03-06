@@ -1,0 +1,42 @@
+﻿[
+  {
+    "id": "p1",
+    "analyst": "ד\"ר לוי",
+    "topic": "רוסיה-אוקראינה",
+    "claim": "עד 2025 ייחתם הסכם הפסקת אש חלקי",
+    "deadline": "2025-12-31",
+    "probability": 0.7,
+    "eventKey": "ceasefire_partial",
+    "source": "seed"
+  },
+  {
+    "id": "p2",
+    "analyst": "נועה כהן",
+    "topic": "איראן",
+    "claim": "סנקציות חדשות של מועצת הביטחון במהלך 2024",
+    "deadline": "2024-12-31",
+    "probability": 0.6,
+    "eventKey": "un_new_sanctions",
+    "source": "seed"
+  },
+  {
+    "id": "p3",
+    "analyst": "ד\"ר לוי",
+    "topic": "סין-טאיוואן",
+    "claim": "לא תהיה פלישה מלאה עד סוף 2025",
+    "deadline": "2025-12-31",
+    "probability": 0.8,
+    "eventKey": "taiwan_full_invasion",
+    "source": "seed"
+  },
+  {
+    "id": "p4",
+    "analyst": "ארז קדם",
+    "topic": "נפט",
+    "claim": "מחיר Brent יעבור 110$ לפחות פעם אחת ב-2024",
+    "deadline": "2024-12-31",
+    "probability": 0.55,
+    "eventKey": "brent_above_110",
+    "source": "seed"
+  }
+]

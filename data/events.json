@@ -1,0 +1,22 @@
+﻿{
+  "ceasefire_partial": {
+    "occurred": true,
+    "date": "2025-09-15",
+    "source": "הסכם מתווך אזורי"
+  },
+  "un_new_sanctions": {
+    "occurred": false,
+    "date": null,
+    "source": "לא התקבלה החלטה חדשה"
+  },
+  "taiwan_full_invasion": {
+    "occurred": false,
+    "date": null,
+    "source": "לא דווח על פלישה מלאה"
+  },
+  "brent_above_110": {
+    "occurred": true,
+    "date": "2024-04-12",
+    "source": "נתוני שוק"
+  }
+}
