@@ -124,11 +124,14 @@ function renderVoteRows() {
 
 function updateMeta() {
   const { votesCount, updatedAt } = state.payload.meta;
+  const title = document.getElementById("averageTitle");
   const meta = document.getElementById("averageMeta");
   if (votesCount === 0) {
+    title.textContent = "סקר פתיחה";
     meta.textContent = "מבוסס כרגע על סקר 12 אחרון מהקובץ. אחרי הצבעות משתמשים יוצג ממוצע התחזיות.";
     return;
   }
+  title.textContent = "ממוצע תחזיות משתמשים";
   meta.textContent = `מבוסס על ${votesCount} תחזיות משתמשים. עודכן: ${new Date(updatedAt).toLocaleString("he-IL")}`;
 }
 
@@ -177,6 +180,7 @@ async function loadData() {
 
 async function submitVote(event) {
   event.preventDefault();
+  const previousVotesCount = state.payload?.meta?.votesCount ?? 0;
   setStatus("שומר תחזית...");
 
   try {
@@ -187,7 +191,10 @@ async function submitVote(event) {
     });
     renderAll();
     document.getElementById("averagePanel").scrollIntoView({ behavior: "smooth", block: "start" });
-    setStatus("התחזית נשמרה והממוצע עודכן");
+    const nextVotesCount = state.payload.meta.votesCount;
+    const voteWord = nextVotesCount === 1 ? "תחזית" : "תחזיות";
+    const changedText = nextVotesCount > previousVotesCount ? "התחזית נשמרה" : "הממוצע נטען מחדש";
+    setStatus(`${changedText}. כעת הממוצע מבוסס על ${nextVotesCount} ${voteWord}.`);
   } catch (error) {
     setStatus(error.message);
   }
