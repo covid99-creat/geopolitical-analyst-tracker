@@ -23,8 +23,7 @@ function setStatus(text) {
 
 function formatSeat(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
-  const rounded = Math.round(Number(value) * 10) / 10;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return String(Math.round(Number(value)));
 }
 
 function roundSeatsToTotal(values, total = 120) {

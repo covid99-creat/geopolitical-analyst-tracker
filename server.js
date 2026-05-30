@@ -165,7 +165,7 @@ function getAverages(votes) {
   }
 
   return Object.fromEntries(
-    PARTIES.map((party) => [party.id, Math.round((totals[party.id] / votes.length) * 10) / 10])
+    PARTIES.map((party) => [party.id, Math.round(totals[party.id] / votes.length)])
   );
 }
 
@@ -176,7 +176,7 @@ function getGroupTotals(seats) {
   }
 
   return Object.fromEntries(
-    Object.entries(totals).map(([group, value]) => [group, Math.round(value * 10) / 10])
+    Object.entries(totals).map(([group, value]) => [group, Math.round(value)])
   );
 }
 
