@@ -1,467 +1,277 @@
-﻿const http = require("http");
+const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
 const { URL } = require("url");
-const { execFile } = require("child_process");
-const { promisify } = require("util");
-
-const execFileAsync = promisify(execFile);
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
-const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS || 730);
-const MAX_ITEMS_PER_FEED = Number(process.env.MAX_ITEMS_PER_FEED || 500);
-const MAX_STORED_LIVE_PREDICTIONS = Number(process.env.MAX_STORED_LIVE_PREDICTIONS || 5000);
+const VOTES_FILE = path.join(DATA_DIR, "votes.json");
+const ACTUAL_RESULT_FILE = path.join(DATA_DIR, "actual_result.json");
 
-const GEOPOLITICAL_TERMS = [
-  "iran", "israel", "gaza", "hamas", "hezbollah",
-  "ukraine", "russia", "nato", "china", "taiwan",
-  "sanctions", "un security council", "ceasefire", "oil", "middle east",
-  "missile", "nuclear", "tehran", "washington", "moscow", "beijing",
-  "jerusalem", "houthi", "red sea",
-  "איראן", "ישראל", "עזה", "אוקראינה", "רוסיה", "סין",
-  "טאיוואן", "סנקציות", "הפסקת אש", "נפט", "מזרח תיכון",
-  "טהרן", "חמאס", "חיזבאללה", "טילים", "גרעין", "ים סוף"
-];
-
-const EVENT_MATCHERS = [
+const PARTIES = [
   {
-    eventKey: "ceasefire_partial",
-    keywords: ["ceasefire", "truce", "הפסקת אש"]
+    id: "likud",
+    shortName: "הליכוד",
+    fullName: "הליכוד בראשות בנימין נתניהו",
+    initials: "בנ",
+    lastElection: 32,
+    latestPoll: 23,
+    group: "bibi"
   },
   {
-    eventKey: "un_new_sanctions",
-    keywords: ["un sanctions", "security council", "סנקציות"]
+    id: "bennet_yesh_atid",
+    shortName: "ביחד / יש עתיד",
+    fullName: "ביחד בראשות נפתלי בנט - יש עתיד",
+    initials: "נב",
+    lastElection: 24,
+    latestPoll: 22,
+    group: "opposition"
   },
   {
-    eventKey: "taiwan_full_invasion",
-    keywords: ["taiwan", "invasion", "פלישה"]
+    id: "eisenkot",
+    shortName: "ישר! גדי איזנקוט",
+    fullName: "ישר! בראשות גדי איזנקוט",
+    initials: "גא",
+    lastElection: null,
+    latestPoll: 17,
+    group: "opposition"
   },
   {
-    eventKey: "brent_above_110",
-    keywords: ["brent", "110", "oil", "נפט"]
+    id: "democrats",
+    shortName: "הדמוקרטים",
+    fullName: "הדמוקרטים בראשות יאיר גולן",
+    initials: "יג",
+    lastElection: 4,
+    latestPoll: 11,
+    group: "opposition"
+  },
+  {
+    id: "yisrael_beitenu",
+    shortName: "ישראל ביתנו",
+    fullName: "ישראל ביתנו בראשות אביגדור ליברמן",
+    initials: "אל",
+    lastElection: 6,
+    latestPoll: 9,
+    group: "opposition"
+  },
+  {
+    id: "shas",
+    shortName: "שס",
+    fullName: "שס בראשות אריה דרעי",
+    initials: "אד",
+    lastElection: 11,
+    latestPoll: 8,
+    group: "bibi"
+  },
+  {
+    id: "utj",
+    shortName: "יהדות התורה",
+    fullName: "יהדות התורה והשבת",
+    initials: "גת",
+    lastElection: 7,
+    latestPoll: 8,
+    group: "bibi"
+  },
+  {
+    id: "otzma",
+    shortName: "עוצמה יהודית",
+    fullName: "עוצמה יהודית בראשות איתמר בן גביר",
+    initials: "אב",
+    lastElection: null,
+    latestPoll: 8,
+    group: "bibi"
+  },
+  {
+    id: "raam",
+    shortName: "רע״מ",
+    fullName: "הרשימה הערבית המאוחדת",
+    initials: "רע",
+    lastElection: 5,
+    latestPoll: 5,
+    group: "arabs"
+  },
+  {
+    id: "arab_list",
+    shortName: "חד״ש תע״ל",
+    fullName: "חד״ש תע״ל",
+    initials: "חת",
+    lastElection: 5,
+    latestPoll: 5,
+    group: "arabs"
+  },
+  {
+    id: "religious_zionism",
+    shortName: "הציונות הדתית",
+    fullName: "הציונות הדתית בראשות בצלאל סמוטריץ׳",
+    initials: "בס",
+    lastElection: 14,
+    latestPoll: 4,
+    group: "bibi"
+  },
+  {
+    id: "national_unity",
+    shortName: "המחנה הממלכתי",
+    fullName: "המחנה הממלכתי בראשות בני גנץ",
+    initials: "בג",
+    lastElection: 12,
+    latestPoll: 0,
+    group: "opposition"
   }
 ];
 
 function sendJson(res, statusCode, payload) {
-  const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store"
   });
-  res.end(body);
+  res.end(JSON.stringify(payload));
 }
 
-async function fetchFeedText(feedUrl) {
-  const response = await fetch(feedUrl, {
-    headers: {
-      "User-Agent": "Geopolitical-Tracker/1.0",
-      "Accept": "application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`RSS fetch failed: ${response.status}`);
-  }
-
-  const text = await response.text();
-  if (text && text.trim().length > 0) {
-    return text;
-  }
-
+async function readJson(filePath, fallback) {
   try {
-    const { stdout } = await execFileAsync("curl", [
-      "-L",
-      feedUrl,
-      "-H",
-      "User-Agent: Mozilla/5.0",
-      "--max-time",
-      "25"
-    ]);
-
-    if (stdout && stdout.trim().length > 0) {
-      return stdout;
-    }
-  } catch {
-    // Ignore curl fallback errors; caller handles empty responses.
-  }
-
-  return "";
-}
-
-function inferProbability(text) {
-  const lower = text.toLowerCase();
-  if (lower.includes("very likely") || lower.includes("highly likely")) {
-    return 0.8;
-  }
-  if (lower.includes("unlikely") || lower.includes("לא סביר")) {
-    return 0.35;
-  }
-  if (lower.includes("likely") || lower.includes("צפוי")) {
-    return 0.65;
-  }
-  return 0.55;
-}
-
-function inferDeadline(text, pubDate) {
-  const yearMatch = text.match(/\b(20\d{2})\b/);
-  if (yearMatch) {
-    return `${yearMatch[1]}-12-31`;
-  }
-
-  const base = pubDate ? new Date(pubDate) : new Date();
-  const inferred = new Date(base);
-  inferred.setMonth(inferred.getMonth() + 6);
-  return inferred.toISOString().slice(0, 10);
-}
-
-function eventKeyFromText(text) {
-  const normalized = text.toLowerCase();
-  for (const matcher of EVENT_MATCHERS) {
-    const hit = matcher.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()));
-    if (hit) {
-      return matcher.eventKey;
-    }
-  }
-  return null;
-}
-
-function stripTags(value) {
-  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function decodeEntities(input) {
-  return input
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ");
-}
-
-function extractTag(xml, tag) {
-  const rx = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
-  const m = xml.match(rx);
-  return m ? decodeEntities(stripTags(m[1])) : "";
-}
-
-function cleanTweetTitle(title) {
-  if (!title) return "";
-  return title
-    .replace(/^.+?\bon X:\s*/i, "")
-    .replace(/^.+?\bon Twitter:\s*/i, "")
-    .trim();
-}
-
-function extractAtomLink(xml) {
-  const m = xml.match(/<link[^>]*href=["']([^"']+)["'][^>]*>/i);
-  return m ? decodeEntities(m[1].trim()) : "";
-}
-
-function splitFeedEntries(xml) {
-  const rssItems = xml.split(/<item[\\s>]/i).slice(1).map((chunk) => `<item ${chunk}`);
-  if (rssItems.length > 0) {
-    return rssItems;
-  }
-
-  return xml.split(/<entry[\\s>]/i).slice(1).map((chunk) => `<entry ${chunk}`);
-}
-
-function isWithinLookback(pubDateText, lookbackDays) {
-  if (!pubDateText) {
-    return true;
-  }
-
-  const parsed = new Date(pubDateText);
-  if (Number.isNaN(parsed.getTime())) {
-    return true;
-  }
-
-  const now = new Date();
-  const windowStart = new Date(now);
-  windowStart.setDate(windowStart.getDate() - lookbackDays);
-
-  return parsed >= windowStart && parsed <= now;
-}
-
-function isPredictionText(text) {
-  const predictionHints = [
-    /\bwill\b/i,
-    /\bforecast\b/i,
-    /\bpredict/i,
-    /\blikely\b/i,
-    /\bexpected\b/i,
-    /\bcould\b/i,
-    /\bmay\b/i,
-    /\boutlook\b/i,
-    /\bwarns?\b/i,
-    /\brisks?\b/i,
-    /\bscenario\b/i,
-    /\bprobability\b/i,
-    /\bpossible\b/i,
-    /\bpotential\b/i,
-    /\bset to\b/i,
-    /\bpoised to\b/i,
-    /\bcoming months?\b/i,
-    /\bcoming weeks?\b/i,
-    /\bby \d{4}\b/i,
-    /צפוי/,
-    /הערכה/,
-    /תחזית/,
-    /סביר/,
-    /עלול/,
-    /עשוי/,
-    /ייתכן/,
-    /בחודשים הקרובים/,
-    /בשנה הקרובה/
-  ];
-
-  return predictionHints.some((rx) => rx.test(text));
-}
-
-function isGeopoliticalText(text) {
-  const lower = text.toLowerCase();
-  return GEOPOLITICAL_TERMS.some((term) => lower.includes(term.toLowerCase()));
-}
-
-function isSoftForecastText(text) {
-  const softHints = [
-    /\btensions?\b/i,
-    /\bescalat/i,
-    /\bde-escalat/i,
-    /\bnegotiat/i,
-    /\btalks?\b/i,
-    /\bwar\b/i,
-    /\bconflict\b/i,
-    /\bpeace\b/i,
-    /\bsettlement\b/i,
-    /הסלמה/,
-    /מו"מ/,
-    /מלחמה/,
-    /הסכם/,
-    /פשרה/
-  ];
-  return isGeopoliticalText(text) && softHints.some((rx) => rx.test(text));
-}
-
-function topicFromText(text) {
-  const pairs = [
-    ["taiwan", "סין-טאיוואן"],
-    ["ukraine", "רוסיה-אוקראינה"],
-    ["iran", "איראן"],
-    ["oil", "נפט"],
-    ["brent", "נפט"]
-  ];
-
-  const lower = text.toLowerCase();
-  for (const [needle, topic] of pairs) {
-    if (lower.includes(needle)) {
-      return topic;
-    }
-  }
-
-  return "גיאו-פוליטיקה";
-}
-
-async function readJson(fileName, fallback) {
-  try {
-    const raw = await fs.readFile(path.join(DATA_DIR, fileName), "utf8");
+    const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw.replace(/^\uFEFF/, ""));
   } catch {
     return fallback;
   }
 }
 
-async function writeJson(fileName, data) {
-  const target = path.join(DATA_DIR, fileName);
-  await fs.writeFile(target, JSON.stringify(data, null, 2), "utf8");
+async function writeJson(filePath, value) {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
 }
 
-function clampProbability(p) {
-  return Math.min(1, Math.max(0, p));
+async function readVotes() {
+  const votes = await readJson(VOTES_FILE, []);
+  return Array.isArray(votes) ? votes : [];
 }
 
-function evaluatePrediction(prediction, event) {
-  if (!event) {
-    return {
-      known: false,
-      binaryCorrect: null,
-      brier: null
-    };
-  }
-
-  const p = clampProbability(prediction.probability);
-  const y = event.occurred ? 1 : 0;
-
-  return {
-    known: true,
-    binaryCorrect: (p >= 0.5 && y === 1) || (p < 0.5 && y === 0) ? 1 : 0,
-    brier: Math.pow(p - y, 2)
-  };
+async function readActualResult() {
+  const result = await readJson(ACTUAL_RESULT_FILE, null);
+  return result && typeof result.seats === "object" ? result : null;
 }
 
-function scoreAnalysts(predictions, events) {
-  const buckets = new Map();
-
-  for (const prediction of predictions) {
-    const analyst = prediction.analyst || "Unknown";
-    const event = prediction.eventKey ? events[prediction.eventKey] : null;
-    const result = evaluatePrediction(prediction, event);
-
-    if (!buckets.has(analyst)) {
-      buckets.set(analyst, {
-        analyst,
-        totalPredictions: 0,
-        scoredPredictions: 0,
-        unresolvedPredictions: 0,
-        binaryHits: 0,
-        brierTotal: 0
-      });
-    }
-
-    const row = buckets.get(analyst);
-    row.totalPredictions += 1;
-
-    if (!result.known) {
-      row.unresolvedPredictions += 1;
-      continue;
-    }
-
-    row.scoredPredictions += 1;
-    row.binaryHits += result.binaryCorrect;
-    row.brierTotal += result.brier;
+function getAverages(votes) {
+  if (votes.length === 0) {
+    return Object.fromEntries(PARTIES.map((party) => [party.id, party.latestPoll]));
   }
 
-  return Array.from(buckets.values())
-    .map((row) => {
-      const denominator = Math.max(1, row.scoredPredictions);
-      const accuracy = row.binaryHits / denominator;
-      const avgBrier = row.scoredPredictions > 0 ? row.brierTotal / row.scoredPredictions : 1;
-      const finalScore = row.scoredPredictions > 0
-        ? (accuracy * 60) + ((1 - avgBrier) * 40)
-        : 0;
+  const totals = Object.fromEntries(PARTIES.map((party) => [party.id, 0]));
+  for (const vote of votes) {
+    for (const party of PARTIES) {
+      totals[party.id] += Number(vote.seats[party.id]) || 0;
+    }
+  }
 
-      return {
-        analyst: row.analyst,
-        totalPredictions: row.totalPredictions,
-        scoredPredictions: row.scoredPredictions,
-        unresolvedPredictions: row.unresolvedPredictions,
-        accuracy,
-        avgBrier,
-        finalScore
-      };
-    })
-    .sort((a, b) => b.finalScore - a.finalScore);
+  return Object.fromEntries(
+    PARTIES.map((party) => [party.id, Math.round((totals[party.id] / votes.length) * 10) / 10])
+  );
 }
 
-async function fetchRss(source, lookbackDays = LOOKBACK_DAYS) {
-  const xml = await fetchFeedText(source.url);
-  if (!xml || xml.trim().length === 0) {
-    throw new Error(`RSS fetch failed (${source.name}): empty response body`);
-  }
-  const items = splitFeedEntries(xml);
-  const parsed = [];
-
-  for (const item of items.slice(0, MAX_ITEMS_PER_FEED)) {
-    const title = extractTag(item, "title");
-    const description =
-      extractTag(item, "description") ||
-      extractTag(item, "content:encoded") ||
-      extractTag(item, "content") ||
-      extractTag(item, "summary");
-    const creator =
-      extractTag(item, "dc:creator") ||
-      extractTag(item, "author") ||
-      extractTag(item, "name");
-    const link = extractTag(item, "link") || extractAtomLink(item) || extractTag(item, "id");
-    const pubDate =
-      extractTag(item, "pubDate") ||
-      extractTag(item, "published") ||
-      extractTag(item, "updated") ||
-      extractTag(item, "dc:date");
-
-    if (!isWithinLookback(pubDate, lookbackDays)) {
-      continue;
-    }
-
-    const cleanedTitle = cleanTweetTitle(title);
-    const text = `${cleanedTitle || title}. ${description}`.trim();
-    if (!text) {
-      continue;
-    }
-
-    // Twitter-only mode: keep broad recall and filter obvious noise.
-    if (text.startsWith("RT @") || text.length < 25) {
-      continue;
-    }
-
-    const prediction = {
-      id: `live-${Buffer.from(`${source.name}-${link || title}-${pubDate}`).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 28)}`,
-      analyst: creator || source.defaultAnalyst,
-      topic: topicFromText(text),
-      claim: cleanedTitle || title || description.slice(0, 220),
-      deadline: inferDeadline(text, pubDate),
-      probability: inferProbability(text),
-      eventKey: eventKeyFromText(text),
-      source: link || source.url,
-      predictionLink: link || source.url,
-      scrapedAt: new Date().toISOString(),
-      publishedAt: pubDate || null
-    };
-
-    parsed.push(prediction);
+function getGroupTotals(seats) {
+  const totals = { bibi: 0, arabs: 0, opposition: 0 };
+  for (const party of PARTIES) {
+    totals[party.group] += Number(seats[party.id]) || 0;
   }
 
-  return parsed;
+  return Object.fromEntries(
+    Object.entries(totals).map(([group, value]) => [group, Math.round(value * 10) / 10])
+  );
 }
 
-async function refreshLivePredictions() {
-  const sources = await readJson("sources.json", []);
-  const all = [];
+function distanceBetween(a, b) {
+  return PARTIES.reduce((sum, party) => {
+    return sum + Math.abs((Number(a[party.id]) || 0) - (Number(b[party.id]) || 0));
+  }, 0);
+}
 
-  for (const source of sources) {
-    try {
-      const predictions = await fetchRss(source, LOOKBACK_DAYS);
-      all.push(...predictions);
-    } catch {
-      // Keep refresh resilient: one failed source should not break all sources.
-    }
+function distanceBetweenGroups(a, b) {
+  return ["bibi", "arabs", "opposition"].reduce((sum, group) => {
+    return sum + Math.abs((Number(a[group]) || 0) - (Number(b[group]) || 0));
+  }, 0);
+}
+
+function getAnalysis(votes, actualResult) {
+  if (!actualResult) {
+    return { ranking: [] };
   }
 
-  const unique = new Map();
-  for (const item of all) {
-    if (!unique.has(item.id)) {
-      unique.set(item.id, item);
-    }
-  }
+  const actualGroups = getGroupTotals(actualResult.seats);
+  const ranking = votes
+    .map((vote) => ({
+      id: vote.id,
+      voterName: vote.voterName,
+      totalDistance: distanceBetween(vote.seats, actualResult.seats),
+      groupDistance: distanceBetweenGroups(getGroupTotals(vote.seats), actualGroups),
+      createdAt: vote.createdAt
+    }))
+    .sort((a, b) => a.totalDistance - b.totalDistance || a.groupDistance - b.groupDistance);
 
-  const finalRows = Array.from(unique.values())
-    .sort((a, b) => (b.publishedAt || b.scrapedAt || "").localeCompare(a.publishedAt || a.scrapedAt || ""))
-    .slice(0, MAX_STORED_LIVE_PREDICTIONS);
-  await writeJson("live_predictions.json", finalRows);
-  return finalRows;
+  return { ranking };
 }
 
 async function getDataPayload() {
-  const [livePredictions, events] = await Promise.all([
-    readJson("live_predictions.json", []),
-    readJson("events.json", {})
-  ]);
+  const [votes, actualResult] = await Promise.all([readVotes(), readActualResult()]);
+  const averages = getAverages(votes);
+  return {
+    parties: PARTIES,
+    averages,
+    groupTotals: getGroupTotals(averages),
+    actualResult: actualResult ? actualResult.seats : null,
+    analysis: getAnalysis(votes, actualResult),
+    meta: {
+      votesCount: votes.length,
+      updatedAt: new Date().toISOString()
+    }
+  };
+}
 
-  const predictions = [...livePredictions]
-    .sort((a, b) => (b.scrapedAt || b.deadline || "").localeCompare(a.scrapedAt || a.deadline || ""));
+async function readBody(req) {
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+function validateSeats(body, label) {
+  const seats = body && typeof body.seats === "object" ? body.seats : null;
+  if (!seats) {
+    return { error: `לא התקבלו נתוני ${label}` };
+  }
+
+  const cleanSeats = {};
+  let total = 0;
+
+  for (const party of PARTIES) {
+    const value = Number(seats[party.id]);
+    if (!Number.isInteger(value) || value < 0 || value > 120) {
+      return { error: `ערך לא תקין עבור ${party.shortName}` };
+    }
+    cleanSeats[party.id] = value;
+    total += value;
+  }
+
+  if (total !== 120) {
+    return { error: `${label} חייבים להסתכם ל-120. כרגע הסכום הוא ${total}` };
+  }
+
+  return { seats: cleanSeats };
+}
+
+function validateVote(body) {
+  const validation = validateSeats(body, "המנדטים");
+  if (validation.error) {
+    return validation;
+  }
 
   return {
-    predictions,
-    events,
-    scores: scoreAnalysts(predictions, events),
-    meta: {
-      updatedAt: new Date().toISOString(),
-      livePredictions: livePredictions.length,
-      totalPredictions: predictions.length,
-      lookbackDays: LOOKBACK_DAYS
+    vote: {
+      id: `vote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      voterName: String(body.voterName || "אנונימי").trim().slice(0, 40) || "אנונימי",
+      seats: validation.seats,
+      createdAt: new Date().toISOString()
     }
   };
 }
@@ -476,12 +286,9 @@ function contentTypeFor(filePath) {
 
 async function serveStatic(req, res) {
   const parsed = new URL(req.url, `http://${req.headers.host}`);
-  let pathname = parsed.pathname;
-  if (pathname === "/") {
-    pathname = "/index.html";
-  }
-
+  const pathname = parsed.pathname === "/" ? "/index.html" : parsed.pathname;
   const safePath = path.normalize(path.join(ROOT, pathname));
+
   if (!safePath.startsWith(ROOT)) {
     res.writeHead(403);
     res.end("Forbidden");
@@ -501,40 +308,58 @@ async function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   const parsed = new URL(req.url, `http://${req.headers.host}`);
 
-  if (req.method === "GET" && parsed.pathname === "/api/health") {
-    sendJson(res, 200, { ok: true, now: new Date().toISOString() });
-    return;
-  }
+  try {
+    if (req.method === "GET" && parsed.pathname === "/api/health") {
+      sendJson(res, 200, { ok: true, now: new Date().toISOString() });
+      return;
+    }
 
-  if (req.method === "GET" && parsed.pathname === "/api/data") {
-    const payload = await getDataPayload();
-    sendJson(res, 200, payload);
-    return;
-  }
+    if (req.method === "GET" && parsed.pathname === "/api/data") {
+      sendJson(res, 200, await getDataPayload());
+      return;
+    }
 
-  if (req.method === "POST" && parsed.pathname === "/api/refresh") {
-    const livePredictions = await refreshLivePredictions();
-    const payload = await getDataPayload();
-    sendJson(res, 200, {
-      ok: true,
-      fetched: livePredictions.length,
-      ...payload
-    });
-    return;
-  }
+    if (req.method === "POST" && parsed.pathname === "/api/votes") {
+      const rawBody = await readBody(req);
+      const body = rawBody ? JSON.parse(rawBody) : {};
+      const validation = validateVote(body);
 
-  await serveStatic(req, res);
+      if (validation.error) {
+        sendJson(res, 400, { error: validation.error });
+        return;
+      }
+
+      const votes = await readVotes();
+      votes.push(validation.vote);
+      await writeJson(VOTES_FILE, votes);
+      sendJson(res, 200, await getDataPayload());
+      return;
+    }
+
+    if (req.method === "POST" && parsed.pathname === "/api/actual-result") {
+      const rawBody = await readBody(req);
+      const body = rawBody ? JSON.parse(rawBody) : {};
+      const validation = validateSeats(body, "התוצאה בפועל");
+
+      if (validation.error) {
+        sendJson(res, 400, { error: validation.error });
+        return;
+      }
+
+      await writeJson(ACTUAL_RESULT_FILE, {
+        seats: validation.seats,
+        updatedAt: new Date().toISOString()
+      });
+      sendJson(res, 200, await getDataPayload());
+      return;
+    }
+
+    await serveStatic(req, res);
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || "שגיאת שרת" });
+  }
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-
-  refreshLivePredictions()
-    .then((rows) => {
-      console.log(`Initial refresh complete: ${rows.length} predictions from last ${LOOKBACK_DAYS} days.`);
-    })
-    .catch(() => {
-      console.log("Initial refresh skipped due network/source issue.");
-    });
+  console.log(`Election forecast site running on http://localhost:${PORT}`);
 });
-

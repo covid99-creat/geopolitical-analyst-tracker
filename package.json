@@ -1,8 +1,8 @@
 ﻿{
-  "name": "geopolitical-analyst-tracker",
+  "name": "election-forecast-2026",
   "version": "1.0.0",
   "private": true,
-  "description": "Scan RSS sources, extract geopolitical predictions, and score analysts.",
+  "description": "Collect 2026 Israeli election forecasts and show average mandates by party and bloc.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -1,115 +1,103 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מדד הפרשנים הגיאו-פוליטיים</title>
+  <title>תחזית בחירות 2026</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
+  <main class="shell">
+    <header class="topbar">
       <div>
-        <h1>מדד דיוק לפרשנים גיאו-פוליטיים</h1>
-        <p>טבלת תחזיות מלאה + דשבורד פרשנים + מעקב לפי נושא/פרשן.</p>
+        <p class="eyebrow">בחירות 2026</p>
+        <h1>ממוצע תחזיות המנדטים</h1>
       </div>
-      <div class="actions">
-        <button id="refreshBtn">רענון מהרשת</button>
-        <small id="statusText">טוען נתונים...</small>
+      <div class="top-actions">
+        <button id="voteModeBtn" type="button">כניסה להצבעה</button>
+        <span id="statusText">טוען נתונים...</span>
       </div>
     </header>
 
-    <section class="card controls-grid">
-      <div>
-        <h2>סינון</h2>
-        <label for="analystFilter">פרשן</label>
-        <select id="analystFilter">
-          <option value="">הכול</option>
-        </select>
+    <section class="summary-band" aria-label="סיכום גושים">
+      <article class="summary-tile bibi">
+        <span>גוש ביבי</span>
+        <strong id="bibiTotal">0</strong>
+      </article>
+      <article class="summary-tile arabs">
+        <span>ערבים</span>
+        <strong id="arabTotal">0</strong>
+      </article>
+      <article class="summary-tile opposition">
+        <span>גוש אופוזיציה</span>
+        <strong id="oppositionTotal">0</strong>
+      </article>
+    </section>
 
-        <label for="topicFilter">נושא</label>
-        <select id="topicFilter">
-          <option value="">הכול</option>
-        </select>
-
-        <button id="clearFiltersBtn" class="secondary">איפוס פילטרים</button>
-      </div>
-
-      <div>
-        <h2>מעקב חדש</h2>
-        <form id="watchAnalystForm" class="inline-form">
-          <input id="watchAnalystInput" placeholder="הוסף פרשן למעקב" required>
-          <button type="submit">עקוב</button>
-        </form>
-
-        <form id="watchTopicForm" class="inline-form">
-          <input id="watchTopicInput" placeholder="הוסף נושא למעקב (למשל: סוף המלחמה באיראן)" required>
-          <button type="submit">עקוב</button>
-        </form>
-
-        <div class="watchlist-box">
-          <strong>מעקב פעיל:</strong>
-          <div id="watchlistView"></div>
+    <section class="chart-panel" id="averagePanel">
+      <div class="section-title on-dark">
+        <div>
+          <h2>הממוצע הנוכחי</h2>
+          <p id="averageMeta">מבוסס על נתוני הפתיחה עד שתתקבל תחזית ראשונה.</p>
         </div>
       </div>
+      <div id="averageChart" class="mandate-chart"></div>
     </section>
 
-    <section class="card">
-      <h2>דשבורד לפי פרשן (לחיץ)</h2>
-      <table id="analystsTable">
-        <thead>
-          <tr>
-            <th>פרשן</th>
-            <th>סה"כ תחזיות</th>
-            <th>תחזיות מדורגות</th>
-            <th>דיוק בינארי</th>
-            <th>Brier (נמוך טוב)</th>
-            <th>ציון סופי</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+    <section class="panel vote-panel" id="votePanel" hidden>
+      <div class="section-title">
+        <div>
+          <h2>התחזית שלך</h2>
+          <p>לכל מפלגה מוצגים המנדטים בבחירות האחרונות והממוצע הנוכחי. סך התחזית חייב להיות 120.</p>
+        </div>
+        <div class="total-box" id="voteTotalBox">
+          <span>סה"כ</span>
+          <strong id="voteTotal">120</strong>
+        </div>
+      </div>
 
-    <section class="card">
-      <h2>הוספת תחזית ידנית עם קישור</h2>
-      <form id="manualPredictionForm" class="manual-grid">
-        <input id="manualAnalyst" placeholder="נותן התחזית" required>
-        <input id="manualTopic" placeholder="נושא" required>
-        <input id="manualClaim" placeholder="טקסט התחזית" required>
-        <input id="manualPredictionLink" placeholder="קישור לתחזית (https://...)" required>
-        <input id="manualDeadline" type="date" placeholder="דדליין">
-        <input id="manualProbability" type="number" min="0" max="1" step="0.01" placeholder="הסתברות (0-1)">
-        <input id="manualOutcome" placeholder="מה קרה בפועל (אופציונלי)">
-        <input id="manualOutcomeLink" placeholder="קישור לאירוע בפועל (אופציונלי)">
-        <select id="manualActualOccurred">
-          <option value="">האם התממש? לא ידוע</option>
-          <option value="true">כן</option>
-          <option value="false">לא</option>
-        </select>
-        <button type="submit">הוסף תחזית</button>
+      <section class="live-blocs" aria-label="גושים בתחזית שלך">
+        <article class="mini-bloc bibi">
+          <span>גוש ביבי</span>
+          <strong id="voteBibiTotal">0</strong>
+        </article>
+        <article class="mini-bloc arabs">
+          <span>ערבים</span>
+          <strong id="voteArabTotal">0</strong>
+        </article>
+        <article class="mini-bloc opposition">
+          <span>גוש אופוזיציה</span>
+          <strong id="voteOppositionTotal">0</strong>
+        </article>
+      </section>
+
+      <form id="voteForm">
+        <label class="name-row">
+          <span>שם להצגה</span>
+          <input id="voterName" maxlength="40" placeholder="אפשר גם להשאיר ריק">
+        </label>
+
+        <div class="vote-table-wrap">
+          <table class="vote-table">
+            <thead>
+              <tr>
+                <th>מפלגה</th>
+                <th>בחירות 2022</th>
+                <th>ממוצע נוכחי</th>
+                <th>התחזית שלך</th>
+              </tr>
+            </thead>
+            <tbody id="voteRows"></tbody>
+          </table>
+        </div>
+
+        <div class="form-actions">
+          <button id="submitVoteBtn" type="submit">שמירת תחזית</button>
+          <button id="resetVoteBtn" class="secondary" type="button">איפוס לממוצע</button>
+        </div>
       </form>
     </section>
 
-    <section class="card">
-      <h2>כל התחזיות</h2>
-      <table id="predictionsTable">
-        <thead>
-          <tr>
-            <th>נותן התחזית</th>
-            <th>נושא</th>
-            <th>תחזית</th>
-            <th>קישור לתחזית</th>
-            <th>מה התרחש בפועל</th>
-            <th>קישור לאירוע בפועל</th>
-            <th>דדליין</th>
-            <th>הסתברות</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <small id="predictionsCount"></small>
-    </section>
   </main>
 
   <script src="app.js"></script>
