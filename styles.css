@@ -10,6 +10,8 @@
   --border: #d6dee8;
   --primary: #2f6fed;
   --primary-dark: #1c4fb5;
+  --cta: #f07c3e;
+  --cta-dark: #d85f23;
   --bibi: #2f6fed;
   --arabs: #16877d;
   --opposition: #6d5bd0;
@@ -208,6 +210,21 @@ button.secondary {
 
 .section-title.on-dark p {
   color: rgba(255, 255, 255, 0.74);
+}
+
+.vote-cta {
+  margin-top: 12px;
+  min-width: 190px;
+  min-height: 50px;
+  padding: 12px 22px;
+  background: linear-gradient(135deg, var(--cta) 0%, #ff9a54 100%);
+  color: #ffffff;
+  font-size: 18px;
+  box-shadow: 0 14px 28px rgba(240, 124, 62, 0.28);
+}
+
+.vote-cta:hover {
+  background: linear-gradient(135deg, var(--cta-dark) 0%, var(--cta) 100%);
 }
 
 .mandate-chart {
