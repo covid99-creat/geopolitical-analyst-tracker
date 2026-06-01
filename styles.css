@@ -145,6 +145,11 @@ button.secondary {
   color: var(--muted);
 }
 
+.admin-status.danger {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .admin-table {
   min-width: 1180px;
 }

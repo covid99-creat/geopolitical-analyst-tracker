@@ -9,6 +9,20 @@ function setAdminStatus(text) {
   document.getElementById("adminStatus").textContent = text;
 }
 
+function renderStorageStatus(storage) {
+  const status = document.getElementById("storageStatus");
+  if (!storage) {
+    status.textContent = "";
+    status.classList.remove("danger");
+    return;
+  }
+
+  status.textContent = storage.persistent
+    ? `האחסון מוגדר כקבוע. נתיב: ${storage.dataDir}`
+    : storage.warning;
+  status.classList.toggle("danger", !storage.persistent);
+}
+
 function formatDate(value) {
   if (!value) return "-";
   return new Date(value).toLocaleString("he-IL");
@@ -39,6 +53,7 @@ function renderVotes(payload) {
 
   document.getElementById("votesTitle").textContent = `כל ההצבעות (${payload.meta.votesCount})`;
   document.getElementById("votesMeta").textContent = `עודכן: ${formatDate(payload.meta.exportedAt)}`;
+  renderStorageStatus(payload.meta.storage);
 
   head.innerHTML = `
     <tr>
@@ -78,6 +93,7 @@ async function loadVotes() {
   adminState.payload = await response.json();
   renderVotes(adminState.payload);
   localStorage.setItem(ADMIN_TOKEN_KEY, adminState.token);
+  renderStorageStatus(adminState.payload.meta.storage);
   setAdminStatus("ההצבעות נטענו.");
 }
 

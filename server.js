@@ -5,7 +5,8 @@ const { URL } = require("url");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, "data");
+const DEFAULT_DATA_DIR = path.join(ROOT, "data");
+const DATA_DIR = process.env.DATA_DIR || DEFAULT_DATA_DIR;
 const VOTES_FILE = path.join(DATA_DIR, "votes.json");
 const ACTUAL_RESULT_FILE = path.join(DATA_DIR, "actual_result.json");
 
@@ -150,6 +151,20 @@ async function writeJson(filePath, value) {
   await fs.writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
 }
 
+function getStorageInfo(votesCount) {
+  const configured = Boolean(process.env.DATA_DIR);
+  return {
+    configured,
+    persistent: configured,
+    dataDir: DATA_DIR,
+    votesFile: VOTES_FILE,
+    votesCount,
+    warning: configured
+      ? null
+      : "DATA_DIR לא מוגדר. ב-Railway זה אחסון זמני ועלול להתאפס ב-redeploy/restart."
+  };
+}
+
 async function readVotes() {
   const votes = await readJson(VOTES_FILE, []);
   return Array.isArray(votes) ? votes : [];
@@ -234,7 +249,8 @@ async function getDataPayload() {
     analysis: getAnalysis(votes, actualResult),
     meta: {
       votesCount: votes.length,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      storage: getStorageInfo(votes.length)
     }
   };
 }
@@ -277,9 +293,19 @@ function getAdminVotesPayload(votes) {
     })),
     meta: {
       votesCount: votes.length,
-      exportedAt: new Date().toISOString()
+      exportedAt: new Date().toISOString(),
+      storage: getStorageInfo(votes.length)
     }
   };
+}
+
+async function ensureDataStorage() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  try {
+    await fs.access(VOTES_FILE);
+  } catch {
+    await writeJson(VOTES_FILE, []);
+  }
 }
 
 function csvEscape(value) {
@@ -471,6 +497,12 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+ensureDataStorage()
+  .catch((error) => {
+    console.error(`Data storage initialization failed: ${error.message}`);
+  });
+
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Election forecast site running on http://localhost:${PORT}`);
+  console.log(`Votes data path: ${VOTES_FILE}`);
 });
