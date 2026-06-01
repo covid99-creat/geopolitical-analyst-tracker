@@ -14,6 +14,7 @@
         <h1>ממוצע תחזיות המנדטים</h1>
       </div>
       <div class="top-actions">
+        <a class="admin-link" href="/votes.html">פירוט ההצבעות</a>
         <span id="statusText">טוען נתונים...</span>
       </div>
     </header>
@@ -75,6 +76,11 @@
         <label class="name-row">
           <span>שם להצגה</span>
           <input id="voterName" maxlength="40" placeholder="אפשר גם להשאיר ריק">
+        </label>
+
+        <label class="anonymous-row">
+          <input id="anonymousVote" type="checkbox">
+          <span>לשמור את ההצבעה כאנונימית</span>
         </label>
 
         <div class="vote-table-wrap">

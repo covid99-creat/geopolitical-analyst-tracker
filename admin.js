@@ -1,12 +1,9 @@
-const ADMIN_TOKEN_KEY = "election_admin_token";
-
 const adminState = {
-  token: localStorage.getItem(ADMIN_TOKEN_KEY) || "",
   payload: null
 };
 
 function setAdminStatus(text) {
-  document.getElementById("adminStatus").textContent = text;
+  document.getElementById("votesMeta").textContent = text;
 }
 
 function renderStorageStatus(storage) {
@@ -29,13 +26,7 @@ function formatDate(value) {
 }
 
 async function adminFetch(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      Authorization: `Bearer ${adminState.token}`
-    }
-  });
+  const response = await fetch(url, options);
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
@@ -83,18 +74,11 @@ function renderVotes(payload) {
 }
 
 async function loadVotes() {
-  if (!adminState.token) {
-    setAdminStatus("יש להזין טוקן מנהל.");
-    return;
-  }
-
   setAdminStatus("טוען הצבעות...");
   const response = await adminFetch("/api/admin/votes");
   adminState.payload = await response.json();
   renderVotes(adminState.payload);
-  localStorage.setItem(ADMIN_TOKEN_KEY, adminState.token);
   renderStorageStatus(adminState.payload.meta.storage);
-  setAdminStatus("ההצבעות נטענו.");
 }
 
 async function downloadCsv() {
@@ -113,27 +97,6 @@ async function downloadCsv() {
 }
 
 function bindAdminEvents() {
-  const input = document.getElementById("adminTokenInput");
-  input.value = adminState.token;
-
-  document.getElementById("adminLoginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    adminState.token = input.value.trim();
-    try {
-      await loadVotes();
-    } catch (error) {
-      setAdminStatus(error.message);
-    }
-  });
-
-  document.getElementById("clearTokenBtn").addEventListener("click", () => {
-    adminState.token = "";
-    input.value = "";
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
-    document.getElementById("votesPanel").hidden = true;
-    setAdminStatus("הטוקן נמחק מהמכשיר הזה.");
-  });
-
   document.getElementById("downloadCsvBtn").addEventListener("click", async () => {
     try {
       await downloadCsv();
@@ -144,6 +107,4 @@ function bindAdminEvents() {
 }
 
 bindAdminEvents();
-if (adminState.token) {
-  loadVotes().catch((error) => setAdminStatus(error.message));
-}
+loadVotes().catch((error) => setAdminStatus(error.message));

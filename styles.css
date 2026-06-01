@@ -355,6 +355,21 @@ button.secondary {
   font-weight: 700;
 }
 
+.anonymous-row {
+  display: inline-grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.anonymous-row input {
+  width: 18px;
+  min-height: 18px;
+}
+
 input {
   width: 100%;
   min-height: 42px;

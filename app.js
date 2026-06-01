@@ -155,8 +155,18 @@ function updateVoteTotals() {
 function collectVote() {
   return {
     voterName: document.getElementById("voterName").value.trim(),
+    anonymous: document.getElementById("anonymousVote").checked,
     seats: getSeatsFromInputs(".seat-input")
   };
+}
+
+function updateAnonymousState() {
+  const anonymous = document.getElementById("anonymousVote").checked;
+  const nameInput = document.getElementById("voterName");
+  nameInput.disabled = anonymous;
+  if (anonymous) {
+    nameInput.value = "";
+  }
 }
 
 function showVotePanel() {
@@ -204,6 +214,7 @@ function bindEvents() {
   document.getElementById("voteModeBtn").addEventListener("click", showVotePanel);
   document.getElementById("voteForm").addEventListener("submit", submitVote);
   document.getElementById("resetVoteBtn").addEventListener("click", renderVoteRows);
+  document.getElementById("anonymousVote").addEventListener("change", updateAnonymousState);
 }
 
 bindEvents();

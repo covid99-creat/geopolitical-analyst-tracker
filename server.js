@@ -255,27 +255,6 @@ async function getDataPayload() {
   };
 }
 
-function isAdminAuthorized(req) {
-  const token = process.env.ADMIN_TOKEN;
-  if (!token) {
-    return false;
-  }
-
-  const auth = req.headers.authorization || "";
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  const headerToken = req.headers["x-admin-token"] || "";
-  return bearer === token || headerToken === token;
-}
-
-function sendAdminAuthError(req, res) {
-  if (!process.env.ADMIN_TOKEN) {
-    sendJson(res, 503, { error: "ADMIN_TOKEN לא מוגדר בשרת" });
-    return;
-  }
-
-  sendJson(res, 401, { error: "אין הרשאת מנהל תקינה" });
-}
-
 function getAdminVotesPayload(votes) {
   return {
     parties: PARTIES.map((party) => ({
@@ -286,6 +265,7 @@ function getAdminVotesPayload(votes) {
     votes: votes.map((vote) => ({
       id: vote.id,
       voterName: vote.voterName,
+      anonymous: Boolean(vote.anonymous),
       createdAt: vote.createdAt,
       total: getVoteTotal(vote.seats),
       groupTotals: getGroupTotals(vote.seats),
@@ -384,7 +364,10 @@ function validateVote(body) {
   return {
     vote: {
       id: `vote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      voterName: String(body.voterName || "אנונימי").trim().slice(0, 40) || "אנונימי",
+      voterName: body.anonymous
+        ? "אנונימי"
+        : (String(body.voterName || "אנונימי").trim().slice(0, 40) || "אנונימי"),
+      anonymous: Boolean(body.anonymous),
       seats: validation.seats,
       createdAt: new Date().toISOString()
     }
@@ -401,7 +384,10 @@ function contentTypeFor(filePath) {
 
 async function serveStatic(req, res) {
   const parsed = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = parsed.pathname === "/" ? "/index.html" : parsed.pathname;
+  let pathname = parsed.pathname === "/" ? "/index.html" : parsed.pathname;
+  if (pathname === "/votes.html") {
+    pathname = "/admin.html";
+  }
   const safePath = path.normalize(path.join(ROOT, pathname));
 
   if (!safePath.startsWith(ROOT)) {
@@ -435,22 +421,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && parsed.pathname === "/api/admin/votes") {
-      if (!isAdminAuthorized(req)) {
-        sendAdminAuthError(req, res);
-        return;
-      }
-
       const votes = await readVotes();
       sendJson(res, 200, getAdminVotesPayload(votes));
       return;
     }
 
     if (req.method === "GET" && parsed.pathname === "/api/admin/votes.csv") {
-      if (!isAdminAuthorized(req)) {
-        sendAdminAuthError(req, res);
-        return;
-      }
-
       const votes = await readVotes();
       sendText(res, 200, getVotesCsv(votes), "text/csv; charset=utf-8");
       return;

@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ניהול הצבעות</title>
+  <title>פירוט ההצבעות</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="shell admin-shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">ניהול</p>
-        <h1>הצבעות משתמשים</h1>
+        <p class="eyebrow">בחירות 2026</p>
+        <h1>פירוט ההצבעות</h1>
       </div>
       <a class="admin-link" href="/">חזרה לאתר</a>
     </header>
@@ -19,30 +19,20 @@
     <section class="panel">
       <div class="section-title">
         <div>
-          <h2>כניסת מנהל</h2>
-          <p>הנתונים מוצגים רק אחרי הזנת טוקן המנהל שהוגדר ב-Railway.</p>
+          <h2>כל תחזיות המשתמשים</h2>
+          <p>כאן אפשר לראות את פירוט ההצבעות שנשמרו באתר. הצבעות שסומנו כאנונימיות מוצגות ללא שם.</p>
         </div>
+        <button id="downloadCsvBtn" type="button">הורדת CSV</button>
       </div>
-
-      <form id="adminLoginForm" class="admin-login">
-        <label>
-          <span>טוקן מנהל</span>
-          <input id="adminTokenInput" type="password" autocomplete="current-password" placeholder="ADMIN_TOKEN">
-        </label>
-        <button type="submit">טעינת הצבעות</button>
-        <button id="clearTokenBtn" class="secondary" type="button">ניקוי טוקן</button>
-      </form>
-      <p id="adminStatus" class="admin-status">ממתין לטוקן.</p>
       <p id="storageStatus" class="admin-status"></p>
     </section>
 
-    <section class="panel" id="votesPanel" hidden>
+    <section class="panel" id="votesPanel">
       <div class="section-title">
         <div>
           <h2 id="votesTitle">כל ההצבעות</h2>
           <p id="votesMeta"></p>
         </div>
-        <button id="downloadCsvBtn" type="button">הורדת CSV</button>
       </div>
 
       <div class="vote-table-wrap">
