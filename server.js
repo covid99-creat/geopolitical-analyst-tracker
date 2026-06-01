@@ -128,6 +128,14 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function sendText(res, statusCode, text, contentType = "text/plain; charset=utf-8") {
+  res.writeHead(statusCode, {
+    "Content-Type": contentType,
+    "Cache-Control": "no-store"
+  });
+  res.end(text);
+}
+
 async function readJson(filePath, fallback) {
   try {
     const raw = await fs.readFile(filePath, "utf8");
@@ -180,6 +188,10 @@ function getGroupTotals(seats) {
   );
 }
 
+function getVoteTotal(seats) {
+  return PARTIES.reduce((sum, party) => sum + (Number(seats[party.id]) || 0), 0);
+}
+
 function distanceBetween(a, b) {
   return PARTIES.reduce((sum, party) => {
     return sum + Math.abs((Number(a[party.id]) || 0) - (Number(b[party.id]) || 0));
@@ -225,6 +237,83 @@ async function getDataPayload() {
       updatedAt: new Date().toISOString()
     }
   };
+}
+
+function isAdminAuthorized(req) {
+  const token = process.env.ADMIN_TOKEN;
+  if (!token) {
+    return false;
+  }
+
+  const auth = req.headers.authorization || "";
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  const headerToken = req.headers["x-admin-token"] || "";
+  return bearer === token || headerToken === token;
+}
+
+function sendAdminAuthError(req, res) {
+  if (!process.env.ADMIN_TOKEN) {
+    sendJson(res, 503, { error: "ADMIN_TOKEN לא מוגדר בשרת" });
+    return;
+  }
+
+  sendJson(res, 401, { error: "אין הרשאת מנהל תקינה" });
+}
+
+function getAdminVotesPayload(votes) {
+  return {
+    parties: PARTIES.map((party) => ({
+      id: party.id,
+      shortName: party.shortName,
+      group: party.group
+    })),
+    votes: votes.map((vote) => ({
+      id: vote.id,
+      voterName: vote.voterName,
+      createdAt: vote.createdAt,
+      total: getVoteTotal(vote.seats),
+      groupTotals: getGroupTotals(vote.seats),
+      seats: vote.seats
+    })),
+    meta: {
+      votesCount: votes.length,
+      exportedAt: new Date().toISOString()
+    }
+  };
+}
+
+function csvEscape(value) {
+  const text = value === null || value === undefined ? "" : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function getVotesCsv(votes) {
+  const headers = [
+    "createdAt",
+    "voterName",
+    "total",
+    "גוש ביבי",
+    "ערבים",
+    "גוש אופוזיציה",
+    ...PARTIES.map((party) => party.shortName)
+  ];
+
+  const rows = votes.map((vote) => {
+    const groups = getGroupTotals(vote.seats);
+    return [
+      vote.createdAt,
+      vote.voterName,
+      getVoteTotal(vote.seats),
+      groups.bibi,
+      groups.arabs,
+      groups.opposition,
+      ...PARTIES.map((party) => vote.seats[party.id] ?? 0)
+    ];
+  });
+
+  return "\uFEFF" + [headers, ...rows]
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\n");
 }
 
 async function readBody(req) {
@@ -316,6 +405,28 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && parsed.pathname === "/api/data") {
       sendJson(res, 200, await getDataPayload());
+      return;
+    }
+
+    if (req.method === "GET" && parsed.pathname === "/api/admin/votes") {
+      if (!isAdminAuthorized(req)) {
+        sendAdminAuthError(req, res);
+        return;
+      }
+
+      const votes = await readVotes();
+      sendJson(res, 200, getAdminVotesPayload(votes));
+      return;
+    }
+
+    if (req.method === "GET" && parsed.pathname === "/api/admin/votes.csv") {
+      if (!isAdminAuthorized(req)) {
+        sendAdminAuthError(req, res);
+        return;
+      }
+
+      const votes = await readVotes();
+      sendText(res, 200, getVotesCsv(votes), "text/csv; charset=utf-8");
       return;
     }
 

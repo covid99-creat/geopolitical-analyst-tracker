@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול הצבעות</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell admin-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ניהול</p>
+        <h1>הצבעות משתמשים</h1>
+      </div>
+      <a class="admin-link" href="/">חזרה לאתר</a>
+    </header>
+
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <h2>כניסת מנהל</h2>
+          <p>הנתונים מוצגים רק אחרי הזנת טוקן המנהל שהוגדר ב-Railway.</p>
+        </div>
+      </div>
+
+      <form id="adminLoginForm" class="admin-login">
+        <label>
+          <span>טוקן מנהל</span>
+          <input id="adminTokenInput" type="password" autocomplete="current-password" placeholder="ADMIN_TOKEN">
+        </label>
+        <button type="submit">טעינת הצבעות</button>
+        <button id="clearTokenBtn" class="secondary" type="button">ניקוי טוקן</button>
+      </form>
+      <p id="adminStatus" class="admin-status">ממתין לטוקן.</p>
+    </section>
+
+    <section class="panel" id="votesPanel" hidden>
+      <div class="section-title">
+        <div>
+          <h2 id="votesTitle">כל ההצבעות</h2>
+          <p id="votesMeta"></p>
+        </div>
+        <button id="downloadCsvBtn" type="button">הורדת CSV</button>
+      </div>
+
+      <div class="vote-table-wrap">
+        <table class="vote-table admin-table">
+          <thead id="adminTableHead"></thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

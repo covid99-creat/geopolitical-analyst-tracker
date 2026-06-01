@@ -120,6 +120,40 @@ button.secondary {
   box-shadow: none;
 }
 
+.admin-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-login {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-login label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-status {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.admin-table {
+  min-width: 1180px;
+}
+
+.admin-table td,
+.admin-table th {
+  white-space: nowrap;
+}
+
 .summary-band,
 .live-blocs {
   display: grid;
@@ -406,6 +440,10 @@ td span {
 
   .summary-band,
   .live-blocs {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-login {
     grid-template-columns: 1fr;
   }
 
