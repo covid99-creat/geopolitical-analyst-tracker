@@ -8,32 +8,44 @@
 </head>
 <body>
   <main class="shell admin-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">בחירות 2026</p>
-        <h1>פירוט ההצבעות</h1>
-      </div>
-      <a class="admin-link" href="/">חזרה לאתר</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="תחזית 2026">
+        <span class="brand-icon" aria-hidden="true">
+          <span class="pie-mark"></span>
+          <span class="trend-mark"></span>
+        </span>
+        <span>תחזית 2026</span>
+      </a>
+      <nav class="header-actions" aria-label="ניווט">
+        <a href="/">חזרה לתחזית הציבור</a>
+        <button id="downloadCsvBtn" class="header-cta" type="button">הורדת CSV</button>
+      </nav>
     </header>
 
-    <section class="panel">
-      <div class="section-title">
+    <section class="forecast-card">
+      <div class="forecast-header">
         <div>
-          <h2>כל תחזיות המשתמשים</h2>
-          <p>כאן אפשר לראות את פירוט ההצבעות שנשמרו באתר. הצבעות שסומנו כאנונימיות מוצגות ללא שם.</p>
+          <p class="eyebrow">שקיפות</p>
+          <h1>פירוט ההצבעות</h1>
         </div>
-        <button id="downloadCsvBtn" type="button">הורדת CSV</button>
+        <div class="forecast-meta">
+          <span id="votesMeta">טוען הצבעות...</span>
+        </div>
       </div>
-      <p id="storageStatus" class="admin-status"></p>
+      <p class="method-note">
+        כאן אפשר לראות את כל התחזיות שנשמרו באתר. תחזיות שסומנו כאנונימיות מוצגות ללא שם.
+      </p>
     </section>
 
     <section class="panel" id="votesPanel">
       <div class="section-title">
         <div>
+          <p class="eyebrow">נתונים גולמיים</p>
           <h2 id="votesTitle">כל ההצבעות</h2>
-          <p id="votesMeta"></p>
         </div>
       </div>
+
+      <p id="emptyVotes" class="empty-state" hidden>עדיין לא נשמרו תחזיות. ברגע שמישהו יגיש תחזית, היא תופיע כאן.</p>
 
       <div class="vote-table-wrap">
         <table class="vote-table admin-table">

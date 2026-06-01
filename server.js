@@ -420,13 +420,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === "GET" && parsed.pathname === "/api/admin/votes") {
+    if (req.method === "GET" && (parsed.pathname === "/api/admin/votes" || parsed.pathname === "/api/votes-detail")) {
       const votes = await readVotes();
       sendJson(res, 200, getAdminVotesPayload(votes));
       return;
     }
 
-    if (req.method === "GET" && parsed.pathname === "/api/admin/votes.csv") {
+    if (req.method === "GET" && (parsed.pathname === "/api/admin/votes.csv" || parsed.pathname === "/api/votes.csv")) {
       const votes = await readVotes();
       sendText(res, 200, getVotesCsv(votes), "text/csv; charset=utf-8");
       return;

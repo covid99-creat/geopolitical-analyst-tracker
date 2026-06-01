@@ -8,47 +8,189 @@
 </head>
 <body>
   <main class="shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">בחירות 2026</p>
-        <h1>ממוצע תחזיות המנדטים</h1>
-      </div>
-      <div class="top-actions">
-        <a class="admin-link" href="/votes.html">פירוט ההצבעות</a>
-        <span id="statusText">טוען נתונים...</span>
-      </div>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="תחזית 2026">
+        <span class="brand-icon" aria-hidden="true">
+          <span class="pie-mark"></span>
+          <span class="trend-mark"></span>
+        </span>
+        <span>תחזית 2026</span>
+      </a>
+      <nav class="header-actions" aria-label="ניווט">
+        <a href="/votes.html">פירוט ההצבעות</a>
+        <button id="headerVoteBtn" class="header-cta" type="button">הוספת תחזית</button>
+      </nav>
     </header>
 
-    <section class="summary-band" aria-label="סיכום גושים">
-      <article class="summary-tile bibi">
-        <span>גוש ביבי</span>
-        <strong id="bibiTotal">0</strong>
-      </article>
-      <article class="summary-tile arabs">
-        <span>ערבים</span>
-        <strong id="arabTotal">0</strong>
-      </article>
-      <article class="summary-tile opposition">
-        <span>גוש אופוזיציה</span>
-        <strong id="oppositionTotal">0</strong>
-      </article>
+    <section class="hero">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="dashboard-visual">
+          <div class="visual-topline">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="visual-kpis">
+            <article>
+              <span>גוש מוביל</span>
+              <strong id="visualLeader">--</strong>
+            </article>
+            <article>
+              <span>תחזיות</span>
+              <strong id="visualVotesCount">0</strong>
+            </article>
+          </div>
+          <div class="visual-bars">
+            <span style="height: 52%"></span>
+            <span style="height: 76%"></span>
+            <span style="height: 41%"></span>
+            <span style="height: 64%"></span>
+            <span style="height: 88%"></span>
+            <span style="height: 57%"></span>
+          </div>
+          <svg class="visual-chart" viewBox="0 0 420 180" role="img" aria-label="איור מגמת תחזיות">
+            <defs>
+              <linearGradient id="blueLine" x1="0" x2="1">
+                <stop offset="0%" stop-color="#60A5FA"/>
+                <stop offset="100%" stop-color="#2563EB"/>
+              </linearGradient>
+              <linearGradient id="redLine" x1="0" x2="1">
+                <stop offset="0%" stop-color="#FCA5A5"/>
+                <stop offset="100%" stop-color="#EF4444"/>
+              </linearGradient>
+            </defs>
+            <path d="M24 126 C90 78, 142 92, 194 70 S298 42, 396 58" fill="none" stroke="url(#blueLine)" stroke-width="8" stroke-linecap="round"/>
+            <path d="M24 76 C92 112, 140 118, 196 100 S304 84, 396 112" fill="none" stroke="url(#redLine)" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="396" cy="58" r="8" fill="#2563EB"/>
+            <circle cx="396" cy="112" r="8" fill="#EF4444"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <p class="eyebrow">בחירות 2026</p>
+        <h1>
+          <span>בחירות 2026:</span>
+          <span class="headline-blue">תחזיות.</span>
+          <span class="headline-red">לא סקרים.</span>
+        </h1>
+        <p class="hero-subtitle">
+          מה אנשים חושבים שיקרה בבחירות הבאות?<br>
+          הגישו תחזית, ראו את ממוצע הציבור,<br>
+          ועקבו איך התחזית משתנה בזמן אמת.
+        </p>
+        <div class="hero-actions">
+          <button id="voteModeBtn" class="primary-action" type="button">הוספת תחזית</button>
+          <button id="viewForecastBtn" class="secondary-action" type="button">צפייה בתחזית הציבור</button>
+        </div>
+        <div class="trust-row" aria-label="נתוני אמון">
+          <span>🎯 כל תחזית משפיעה</span>
+          <span id="updatedIndicator">⏱ טוען עדכון</span>
+          <span id="countIndicator">👥 0 תחזיות הוגשו</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="forecast-card" id="forecastSection" aria-label="תחזית הציבור כרגע">
+      <div class="forecast-header">
+        <div>
+          <p class="eyebrow">ממוצע ציבורי</p>
+          <h2 id="averageTitle">תחזית הציבור כרגע</h2>
+        </div>
+        <div class="forecast-meta">
+          <span id="averageMeta">טוען נתונים...</span>
+          <span id="statusText">טוען נתונים...</span>
+        </div>
+      </div>
+
+      <div class="forecast-grid" id="primaryForecastRows"></div>
+
+      <div class="forecast-footer">
+        <span id="forecastVoteCount">0 תחזיות הוגשו</span>
+        <span id="forecastUpdatedAt">עודכן כעת</span>
+      </div>
     </section>
 
     <section class="chart-panel" id="averagePanel">
       <div class="section-title on-dark">
         <div>
-          <h2 id="averageTitle">הממוצע הנוכחי</h2>
-          <p id="averageMeta">מבוסס על נתוני הפתיחה עד שתתקבל תחזית ראשונה.</p>
-          <button id="voteModeBtn" class="vote-cta" type="button">כניסה להצבעה</button>
+          <p class="eyebrow">מפת המנדטים</p>
+          <h2>ממוצע התחזיות לפי מפלגה</h2>
+          <p>המספרים מעוגלים למנדטים שלמים ומסתכמים ל-120.</p>
         </div>
       </div>
       <div id="averageChart" class="mandate-chart"></div>
     </section>
 
+    <section class="insight-grid" aria-label="איך זה עובד">
+      <div class="section-heading">
+        <p class="eyebrow">שיטה</p>
+        <h2>איך זה עובד?</h2>
+      </div>
+      <article class="info-card">
+        <span>01</span>
+        <h3>כל אחד יכול להגיש תחזית</h3>
+        <p>בחרו כמה מנדטים תקבל כל מפלגה, וסכמו בדיוק ל-120.</p>
+      </article>
+      <article class="info-card">
+        <span>02</span>
+        <h3>המערכת מחשבת את ממוצע התחזיות</h3>
+        <p>כל תחזית חדשה נכנסת לממוצע הציבורי ומעדכנת את תמונת המצב.</p>
+      </article>
+      <article class="info-card">
+        <span>03</span>
+        <h3>תחזית הציבור מתעדכנת בזמן אמת</h3>
+        <p>אפשר לחזור ולראות איך הציפיות משתנות ככל שמצטרפות תחזיות.</p>
+      </article>
+      <p class="method-note">
+        זו אינה מדידה של כוונות הצבעה, אלא ממוצע של תחזיות המשתמשים לגבי תוצאת הבחירות.
+      </p>
+    </section>
+
+    <section class="analytics-grid">
+      <article class="analytics-card">
+        <div class="section-heading">
+          <p class="eyebrow">פיזור</p>
+          <h2>פיזור התחזיות</h2>
+          <p>כך נראות כל התחזיות שהוגשו, ולא רק הממוצע.</p>
+        </div>
+        <div id="distributionChart" class="histogram"></div>
+        <p id="distributionEmpty" class="empty-state" hidden>ברגע שיוגשו תחזיות, יופיע כאן פיזור התחזיות לפי כוח גוש ביבי.</p>
+      </article>
+
+      <article class="analytics-card">
+        <div class="section-heading">
+          <p class="eyebrow">30 ימים</p>
+          <h2>מגמת התחזית</h2>
+          <p>איך תחזית הציבור השתנתה לאורך זמן.</p>
+        </div>
+        <div id="trendChart" class="trend-chart"></div>
+        <p id="trendEmpty" class="empty-state" hidden>לאחר כמה תחזיות לאורך זמן, תופיע כאן מגמה היסטורית.</p>
+      </article>
+    </section>
+
+    <section class="return-card">
+      <h2>חזרו לראות איך התחזית משתנה ככל שעוד אנשים מגישים תחזיות.</h2>
+      <button class="primary-action" type="button" data-open-vote>הוספת תחזית חדשה</button>
+    </section>
+
+    <section class="leaderboard-card" aria-label="חזאים מובילים">
+      <div class="section-heading">
+        <p class="eyebrow">בקרוב</p>
+        <h2>החזאים המובילים</h2>
+      </div>
+      <div class="badge-row">
+        <span>חזאי מוקדם</span>
+        <span>Top 10%</span>
+        <span>מומחה בחירות</span>
+      </div>
+    </section>
+
     <section class="panel vote-panel" id="votePanel" hidden>
       <div class="section-title">
         <div>
-          <h2>התחזית שלך</h2>
+          <p class="eyebrow">התחזית שלך</p>
+          <h2>הוספת תחזית</h2>
           <p>לכל מפלגה מוצגים המנדטים בבחירות האחרונות והממוצע הנוכחי. סך התחזית חייב להיות 120.</p>
         </div>
         <div class="total-box" id="voteTotalBox">
@@ -103,7 +245,6 @@
         </div>
       </form>
     </section>
-
   </main>
 
   <script src="app.js"></script>

@@ -1,23 +1,9 @@
-const adminState = {
+const votesState = {
   payload: null
 };
 
-function setAdminStatus(text) {
+function setVotesMeta(text) {
   document.getElementById("votesMeta").textContent = text;
-}
-
-function renderStorageStatus(storage) {
-  const status = document.getElementById("storageStatus");
-  if (!storage) {
-    status.textContent = "";
-    status.classList.remove("danger");
-    return;
-  }
-
-  status.textContent = storage.persistent
-    ? `האחסון מוגדר כקבוע. נתיב: ${storage.dataDir}`
-    : storage.warning;
-  status.classList.toggle("danger", !storage.persistent);
 }
 
 function formatDate(value) {
@@ -25,7 +11,7 @@ function formatDate(value) {
   return new Date(value).toLocaleString("he-IL");
 }
 
-async function adminFetch(url, options = {}) {
+async function publicFetch(url, options = {}) {
   const response = await fetch(url, options);
 
   if (!response.ok) {
@@ -39,12 +25,12 @@ async function adminFetch(url, options = {}) {
 function renderVotes(payload) {
   const head = document.getElementById("adminTableHead");
   const body = document.getElementById("adminTableBody");
-  const panel = document.getElementById("votesPanel");
+  const empty = document.getElementById("emptyVotes");
   const parties = payload.parties;
 
   document.getElementById("votesTitle").textContent = `כל ההצבעות (${payload.meta.votesCount})`;
-  document.getElementById("votesMeta").textContent = `עודכן: ${formatDate(payload.meta.exportedAt)}`;
-  renderStorageStatus(payload.meta.storage);
+  setVotesMeta(`עודכן: ${formatDate(payload.meta.exportedAt)}`);
+  empty.hidden = payload.votes.length > 0;
 
   head.innerHTML = `
     <tr>
@@ -69,21 +55,18 @@ function renderVotes(payload) {
       ${parties.map((party) => `<td>${vote.seats[party.id] ?? 0}</td>`).join("")}
     </tr>
   `).join("");
-
-  panel.hidden = false;
 }
 
 async function loadVotes() {
-  setAdminStatus("טוען הצבעות...");
-  const response = await adminFetch("/api/admin/votes");
-  adminState.payload = await response.json();
-  renderVotes(adminState.payload);
-  renderStorageStatus(adminState.payload.meta.storage);
+  setVotesMeta("טוען הצבעות...");
+  const response = await publicFetch("/api/votes-detail");
+  votesState.payload = await response.json();
+  renderVotes(votesState.payload);
 }
 
 async function downloadCsv() {
-  setAdminStatus("מכין CSV...");
-  const response = await adminFetch("/api/admin/votes.csv");
+  setVotesMeta("מכין CSV...");
+  const response = await publicFetch("/api/votes.csv");
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -93,18 +76,18 @@ async function downloadCsv() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  setAdminStatus("CSV הורד.");
+  setVotesMeta("CSV הורד.");
 }
 
-function bindAdminEvents() {
+function bindVotesEvents() {
   document.getElementById("downloadCsvBtn").addEventListener("click", async () => {
     try {
       await downloadCsv();
     } catch (error) {
-      setAdminStatus(error.message);
+      setVotesMeta(error.message);
     }
   });
 }
 
-bindAdminEvents();
-loadVotes().catch((error) => setAdminStatus(error.message));
+bindVotesEvents();
+loadVotes().catch((error) => setVotesMeta(error.message));
